@@ -1,0 +1,296 @@
+#include "forces.h"
+#include "collision.h"
+#include <stdlib.h>
+#include <assert.h>
+#include <math.h>
+
+const double MIN_DIST = 1.5;
+
+typedef struct grav_aux {
+    double G;
+    body_t *body1;
+    body_t *body2;
+} grav_aux_t ;
+
+typedef struct spring_aux {
+    double K;
+    body_t *body1;
+    body_t *body2;
+} spring_aux_t;
+
+typedef struct drag_aux {
+    double gamma;
+    body_t *body;
+} drag_aux_t;
+
+typedef struct collision_aux {
+    body_t *body1;
+    body_t *body2;
+    void *aux;
+    bool has_collided;
+    collision_handler_t handler;
+    free_func_t freer;
+} collision_aux_t;
+
+typedef struct physics_aux {
+    double elasticity;
+} physics_aux_t;
+
+
+force_t *force_init(force_creator_t forcer, void *aux, list_t *bodies, free_func_t freer) {
+    force_t *force = malloc(sizeof(force_t));
+    assert(force != NULL);
+    force->forcer = forcer;
+    force->aux=aux;
+    force->bodies = bodies;
+    force->freer=freer;
+    return force;
+}
+
+void *force_get_aux(force_t *force){
+    return force->aux;
+}
+
+force_creator_t force_get_forcer(force_t *force){
+    return force->forcer;
+}
+
+list_t *force_get_bodies(force_t *force) {
+    return force->bodies;
+}
+
+free_func_t force_get_freer(force_t *force){
+    return force->freer;
+}
+
+void grav_aux_free(grav_aux_t *aux){
+    free(aux);
+}
+
+void spring_aux_free(spring_aux_t *aux){
+    free(aux);
+}
+
+void drag_aux_free(drag_aux_t *aux){
+    free(aux);
+}
+
+void collision_aux_free(collision_aux_t *aux){
+    if (aux->freer != NULL) {
+        (aux->freer)(aux->aux);
+    }
+    free(aux);
+}
+
+void physics_aux_free(physics_aux_t *aux){
+    free(aux);
+}
+
+void force_free(force_t *force){
+    if (force->freer != NULL) {
+        (force->freer)(force->aux);
+    }
+    if (force->bodies != NULL) {
+        list_free(force->bodies);
+    }
+    free(force);
+}
+
+void calc_newtonian_gravity(grav_aux_t *aux) {
+    double G = aux->G;
+    body_t *body1 = aux->body1;
+    body_t *body2 = aux->body2;
+
+    double m1 = body_get_mass(body1);
+    double m2 = body_get_mass(body2);
+    vector_t r12 = body_vec_between(body1, body2);
+    double norm = vec_norm(r12);
+    r12 = vec_multiply(1/norm, r12);
+
+    if (norm < MIN_DIST) {
+        return;
+    }
+    vector_t net_force21 = vec_multiply(G*m1*m2/(norm*norm), r12);
+    vector_t net_force12 = vec_multiply(-1.0, net_force21);
+
+    body_add_force(body1, net_force12);
+    body_add_force(body2, net_force21);
+}
+
+void create_newtonian_gravity(scene_t *scene, double G, body_t *body1, body_t *body2) {
+    grav_aux_t *aux = malloc(sizeof(grav_aux_t));
+    list_t *bodies = list_init(2, NULL);
+    list_add(bodies, body1);
+    list_add(bodies, body2);
+    assert(aux != NULL);
+    aux->G = G;
+    aux->body1=body1;
+    aux->body2=body2;
+    scene_add_bodies_force_creator(
+        scene,
+        (force_creator_t) (calc_newtonian_gravity),
+        aux,
+        bodies,
+        (free_func_t) (grav_aux_free)
+    );
+
+}
+
+void calc_spring(spring_aux_t *aux) {
+    double K = aux->K;
+    body_t *body1 = aux->body1;
+    body_t *body2 = aux->body2;
+
+    vector_t r12 = body_vec_between(body1, body2);
+    double norm = vec_norm(r12);
+    if (norm < 1e-4) {
+        return;
+    }
+    r12 = vec_multiply(norm, vec_multiply(1/vec_norm(r12), r12));
+    vector_t net_force12 = vec_multiply(-1.0*K, r12);
+    body_add_force(body1, net_force12);
+    body_add_force(body2, vec_multiply(-1, net_force12));
+}
+
+void create_spring(scene_t *scene, double k, body_t *body1, body_t *body2) {
+    spring_aux_t *aux = malloc(sizeof(spring_aux_t));
+    list_t *bodies = list_init(2, NULL);
+    list_add(bodies, body1);
+    list_add(bodies, body2);
+    assert(aux != NULL);
+
+    aux->K = k;
+    aux->body1=body1;
+    aux->body2=body2;
+    scene_add_bodies_force_creator(
+        scene,
+        (force_creator_t) (calc_spring),
+        aux,
+        bodies,
+        (free_func_t) (spring_aux_free)
+    );
+}
+
+void calc_drag(drag_aux_t *aux) {
+    double gamma = aux->gamma;
+    body_t *body = aux->body;
+
+    vector_t net_force = vec_multiply(-1.0*gamma, body_get_velocity(body));
+    body_add_force(body, net_force);
+}
+
+void create_drag(scene_t *scene, double gamma, body_t *body){
+    drag_aux_t *aux = malloc(sizeof(drag_aux_t));
+    list_t *bodies = list_init(1, NULL);
+    list_add(bodies, body);
+    assert(aux != NULL);
+
+    aux->gamma = gamma;
+    aux->body=body;
+    scene_add_bodies_force_creator(
+        scene,
+        (force_creator_t) (calc_drag),
+        aux,
+        bodies,
+        (free_func_t) (drag_aux_free)
+    );
+}
+
+// Collisions
+// ----------------------------------------------------------------------------
+void calc_collision(collision_aux_t *aux){
+    collision_handler_t handler = aux->handler;
+    body_t *body1 = aux->body1;
+    body_t *body2 = aux->body2;
+
+    collision_info_t info = find_collision(body_get_shape(body1), body_get_shape(body2));
+    if (info.collided && !aux->has_collided) {
+        handler(body1, body2, info.axis, aux->aux);
+        aux->has_collided = true;
+    } else if (!info.collided) {
+        aux->has_collided = false;
+    }
+
+}
+
+void create_collision(
+    scene_t *scene,
+    body_t *body1,
+    body_t *body2,
+    collision_handler_t handler,
+    void *aux,
+    free_func_t freer
+) {
+    collision_aux_t *aux1 = malloc(sizeof(collision_aux_t));
+    assert(aux1 != NULL);
+    list_t *bodies = list_init(2, NULL);
+    list_add(bodies, body1);
+    list_add(bodies, body2);
+    aux1->body1 = body1;
+    aux1->body2 = body2;
+    aux1->handler = handler;
+    aux1->aux = aux;
+    aux1->freer = freer;
+    aux1->has_collided=false;
+
+    scene_add_bodies_force_creator(
+        scene,
+        (force_creator_t) calc_collision,
+        aux1,
+        bodies,
+        (free_func_t) collision_aux_free
+    );
+}
+void calc_destructive_collision(body_t *body1, body_t *body2, vector_t axis, void *aux) {
+    body_remove(body1);
+    body_remove(body2);
+}
+
+void calc_oneway_destructive_collision(body_t *body1, body_t *body2, vector_t axis, void *aux) {
+    body_remove(body2);
+}
+
+void create_destructive_collision(scene_t *scene, body_t *body1, body_t *body2){
+    create_collision(scene, body1, body2, (collision_handler_t) calc_destructive_collision,
+                     NULL, NULL);
+}
+
+// Only deletes the second body
+void create_oneway_destructive_collision(scene_t *scene, body_t *body1, body_t *body2){
+    create_collision(scene, body1, body2, (collision_handler_t) calc_oneway_destructive_collision,
+                     NULL, NULL);
+}
+
+void calc_physics_collision(body_t *body1, body_t *body2, vector_t axis, physics_aux_t *aux) {
+    double elasticity = aux->elasticity;
+
+    double u1 = vec_dot(body_get_velocity(body1), axis);
+    double u2 = vec_dot(body_get_velocity(body2), axis);
+    double m1 = body_get_mass(body1);
+    double m2 = body_get_mass(body2);
+    double reduced_mass = 0.0;
+
+    if (m1 >= INFINITY || m2 >= INFINITY) {
+        // Uses the minimum of the two masses
+        reduced_mass = (m1 < m2) ? m1 : m2;
+    } else {
+        reduced_mass = (m1 * m2)/(m1 + m2);
+    }
+
+    double impulse = reduced_mass*(1+elasticity)*(u2-u1);
+    body_add_impulse(body1, vec_multiply(impulse, axis));
+    body_add_impulse(body2, vec_multiply(-1*impulse, axis));
+}
+
+void create_physics_collision(scene_t *scene,
+        double elasticity,
+        body_t *body1,
+        body_t *body2){
+    physics_aux_t *aux = malloc(sizeof(physics_aux_t));
+    assert(aux != NULL);
+
+    aux->elasticity = elasticity;
+
+    create_collision(scene, body1, body2, (collision_handler_t) calc_physics_collision,
+                     aux, (free_func_t) physics_aux_free);
+}
