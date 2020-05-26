@@ -63,23 +63,28 @@ double *generate_noise(double width, int granularity, double damping) {
     for (size_t i = 0; i < width; i++) {
         if (height_lst[i] == 0){ // Likely has not been changed
             // Find the closest left and right points
-            double l_height = 0;
+            vector_t left = {0, 0};
             for (size_t j=0; j<i; j++) {
                 if (height_lst[j] != 0) {
-                    l_height = height_lst[j];
+                    left = (vector_t) {j, height_lst[j]};
                 }
             }
 
-            double r_height = 0;
+            vector_t right = {0, 0};
             for (size_t j=i; j<width; j++) {
                 if (height_lst[j] != 0) {
-                    r_height = height_lst[j];
+                    right = (vector_t) {j, height_lst[j]};
                 }
             }
-
-            height_lst[i] = (l_height + r_height) / 2; // Not completely right but close enough for now
+            
+            height_lst[i] = interpolate(left, right, i);
         }
     }
 
     return height_lst;
+}
+
+vector_t interpolate(vector_t left, vector_t right, double x_pos) {
+    double slope = (right.y - left.y) / (right.x - left.x);
+    return left.y + slope * (x_pos - left.x);
 }
