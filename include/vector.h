@@ -21,6 +21,7 @@ extern const double THIS_IS_A_HALF;
  */
 extern const vector_t VEC_ZERO;
 
+vector_t *vec_init(double x, double y);
 /**
  * Adds two vectors.
  * Performs the usual componentwise vector sum.
