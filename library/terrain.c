@@ -10,12 +10,12 @@ body_t *generate_terrain(double width, double base_height, double scale, int gra
     // Going to effectively flip across the Y axis
     // So I don't have to going through the list in reverse
 
-    list_t points = list_init(width + 2); // + 2 for the bottom left and right vertices
+    list_t *points = list_init(width + 2, free); // + 2 for the bottom left and right vertices
     for (size_t i=0; i < width; i++) {
         vector_t *pt = malloc(sizeof(vector_t));
         assert(pt != NULL);
 
-        *pt = (vector_t) {i, (heights[i] * scale) + base_height}
+        *pt = (vector_t) {i, (heights[i] * scale) + base_height};
 
         list_add(points, pt);
     }
@@ -28,7 +28,7 @@ body_t *generate_terrain(double width, double base_height, double scale, int gra
     list_add(points, r_corner);
 
     rgb_color_t color = {0.0, 153.0/255.0, 51.0/255.0};
-    body_t* terrain = body_init(points, mass, rgb_color_t color)
+    body_t* terrain = body_init(points, mass, color);
 
     return terrain;
 }
@@ -49,13 +49,14 @@ double *generate_noise(double width, int granularity, double damping) {
 
     int level = 2;
     while (level < granularity) {
-        for (size_t i = 10.0/level; i < width; i += 10.0/level) {
-            double l_height = height_lst[i-2.5];
-            double r_height = height_lst[i+2.5];
+        size_t pos = (size_t)(10.0/level); // Rounds down to nearest whole number
+        for (size_t i = pos; i < width; i += (size_t) 10.0/(level-1)) { // This will be bad for level > 3
+            double l_height = height_lst[i-pos];
+            double r_height = height_lst[i+pos];
 
-            double interp = (l_height + r_height)/2
+            double interp = (l_height + r_height)/2;
             double noise = (fmod(rand(), 1.0) - 0.5) * 2 * pow(damping, level - 1);
-            height_lst[i - fmod(i, 1)] = interp + noise;
+            height_lst[i] = interp + noise;
         }
     }
 
@@ -84,7 +85,7 @@ double *generate_noise(double width, int granularity, double damping) {
     return height_lst;
 }
 
-vector_t interpolate(vector_t left, vector_t right, double x_pos) {
+double interpolate(vector_t left, vector_t right, double x_pos) {
     double slope = (right.y - left.y) / (right.x - left.x);
     return left.y + slope * (x_pos - left.x);
 }
