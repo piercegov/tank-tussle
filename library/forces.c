@@ -1,5 +1,6 @@
 #include "forces.h"
 #include "collision.h"
+#include "tanks.h"
 #include <stdlib.h>
 #include <assert.h>
 #include <math.h>
@@ -250,6 +251,15 @@ void calc_oneway_destructive_collision(body_t *body1, body_t *body2, vector_t ax
     body_remove(body2);
 }
 
+void calc_damaging_collision(body_t *body1, body_t *body2, vector_t axis, void *aux) {
+    body_t *tank = body1;
+    body_t *bullet = body2;
+    double health = *tank_get_health(aux);
+    double damage = *body_get_info(body2);
+    set_health(tank, health-damage);
+    body_remove(body2);
+}
+
 void create_destructive_collision(scene_t *scene, body_t *body1, body_t *body2){
     create_collision(scene, body1, body2, (collision_handler_t) calc_destructive_collision,
                      NULL, NULL);
@@ -259,6 +269,11 @@ void create_destructive_collision(scene_t *scene, body_t *body1, body_t *body2){
 void create_oneway_destructive_collision(scene_t *scene, body_t *body1, body_t *body2){
     create_collision(scene, body1, body2, (collision_handler_t) calc_oneway_destructive_collision,
                      NULL, NULL);
+}
+
+//For bullets interacting with tanks
+void create_damaging_collision(scene_t *scene, body_t *body1, body_t *body2) {
+    create_collision(scene, body1, body2, (collision_handler_t) calc_damaging_collision)
 }
 
 void calc_physics_collision(body_t *body1, body_t *body2, vector_t axis, physics_aux_t *aux) {
