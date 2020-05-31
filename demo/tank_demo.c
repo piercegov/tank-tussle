@@ -158,7 +158,7 @@ void shooter_key_handler(char key, key_event_type_t type, double held_time, scen
 
 void tangent_bodies(body_t *tank, body_t *terrain) {
     vector_t tank_center = body_get_centroid(tank);
-    vector_t terrain_max = body_get_max(terrain, tank_center - 1, tank_center + 1);
+    vector_t terrain_max = body_get_max(terrain, tank_center.x - 1, tank_center.x + 1);
     body_set_centroid(tank, (vector_t){ tank_center.x, terrain_max.y + TANK_SIZE });
 }
 
