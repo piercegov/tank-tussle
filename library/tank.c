@@ -53,39 +53,43 @@ tank_info_t *tank_get_info(body_t *tank) {
     return (tank_info_t)body_get_info(tank);
 }
 
+int tank_get_number(body_t *tank) {
+    return tank_get_info(tank)->tank_number;
+}
+
 health_t *tank_get_health_bar(body_t *tank) {
     return tank_get_info(tank)->health_bar;
 }
 
-double tank_get_health(tank_t *tank) {
+double tank_get_health(body_t *tank) {
     return tank_get_info(tank)->health;
 }
 
-void tank_decrease_health(tank_t *tank, double health_decrease) {
+void tank_decrease_health(body_t *tank, double health_decrease) {
     tank_info_t *info = tank_get_info(tank);
     info->health -= health_decrease;
     update_health_bar(tank);
 }
 
-double tank_get_power(tank_t *tank) {
+double tank_get_power(body_t *tank) {
     return tank_get_info(tank)->power;
 }
 
-double tank_get_angle(tank_t *tank) {
+double tank_get_angle(body_t *tank) {
     return tank_get_info(tank)->health;
 }
 
-void tank_set_power(tank_t *tank, double new_power) {
+void tank_set_power(body_t *tank, double new_power) {
     tank_info_t *info = tank_get_info(tank);
     info->power = new_power;
 }
 
-void tank_set_angle(tank_t *tank, double new_angle) {
+void tank_set_angle(body_t *tank, double new_angle) {
     tank_info_t *info = tank_get_info(tank);
     info->angle = new_angle;
 }
 
-bool tank_is_destroyed(tank_t *tank) {
+bool tank_is_destroyed(body_t *tank) {
     if (tank_get_info(tank)->health <= 0.0) {
         return true;
     }
