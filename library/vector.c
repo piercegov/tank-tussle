@@ -5,6 +5,16 @@
 const vector_t VEC_ZERO = { 0.0, 0.0 };
 const double THIS_IS_A_HALF = 0.5;
 
+vector_t *vec_init(double x, double y) {
+    vector_t *vec = malloc(sizeof(vector_t));
+    assert(vec != NULL);
+
+    vec->x = x;
+    vec->y = y;
+
+    return vec;
+}
+
 // Checks if v3 is in the rectangular region bounded by v1 and v2
 bool vector_in_region(vector_t v1, vector_t v2, vector_t v3) {
     // v1 is bottom left v2 is top right

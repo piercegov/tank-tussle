@@ -168,3 +168,27 @@ bool body_is_colliding(body_t *body1, body_t *body2) {
     // DEPRECATED
     return vec_isequal(body_check_collision(body1, body2), VEC_ZERO);
 }
+
+vector_t body_get_max(body_t *b, double min_x, double max_x) {
+    list_t *points = body_get_points(b);
+    vector_t max = body_get_centroid(b);
+    for (size_t i = 0; i < list_size(points); i++) {
+        vector_t *current = list_get(points, i);
+        if (current->x >= min_x && current->x <= max_x && current.y > max.y) {
+            max = *current;
+        }
+    }
+    return max
+}
+
+vector_t body_get_min(body_t *b, double min_x, double max_x) {
+    list_t *points = body_get_points(b);
+    vector_t min = body_get_centroid(b);
+    for (size_t i = 0; i < list_size(points); i++) {
+        vector_t *current = list_get(points, i);
+        if (current->x >= min_x && current->x <= max_x && current.y < max.y) {
+            min = *current;
+        }
+    }
+    return min
+}

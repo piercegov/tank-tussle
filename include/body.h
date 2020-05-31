@@ -193,4 +193,26 @@ void body_remove(body_t *body);
  */
 bool body_is_removed(body_t *body);
 
+/**
+ * Returns the maximum vector with respect to y coordinates within the interval
+ * min_x - max_x.
+ *
+ * @param b the body to get the max of
+ * @param min_x the left x boundary
+ * @param max_x the right x boundary
+ * @return the max y vector
+ */
+vector_t body_get_max(body_t *b, double min_x, double max_x)
+
+/**
+ * Returns the minimum vector with respect to y coordinates within the interval
+ * min_x - max_x.
+ *
+ * @param b the body to get the min of
+ * @param min_x the left x boundary
+ * @param max_x the right x boundary
+ * @return the min y vector
+ */
+vector_t body_get_min(body_t *b, double min_x, double max_x)
+
 #endif // #ifndef __BODY_H__
