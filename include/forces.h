@@ -110,6 +110,18 @@ void create_collision(
 void create_destructive_collision(scene_t *scene, body_t *body1, body_t *body2);
 
 /**
+ * Adds a force creator to a scene that destroys one body and damages the other body
+ * when they collide.
+ * @param scene the scene containing the scene_bodies
+ * @param body1 the first body which gets damaged
+ * @param body2 the second body which gets removed
+ *
+ * Pearce is whiny baby
+ */
+void create_damaging_collision(scene_t *scene, body_t *body1, body_t *body2);
+
+
+/**
  * Adds a force creator to a scene that applies impulses
  * to resolve collisions between two bodies in the scene.
  * This should be represented as an on-collision callback

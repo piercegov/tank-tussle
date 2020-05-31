@@ -1,37 +1,15 @@
-
 #include "body.h"
 #include "terrain.h"
 #include <stdlib.h>
 #include "list.h"
 #include <math.h>
 #include "color.h"
+#include <time.h>
+#include <assert.h>
 
-body_t *generate_terrain(double width, double base_height, double scale, int granularity, double damping, double mass) {
-  double* heights = generate_noise(width, granularity, damping);
-  // Going to effectively flip across the Y axis
-  // So I don't have to going through the list in reverse
-
-  list_t *points = list_init(width + 2, free); // + 2 for the bottom left and right vertices
-  for (size_t i=0; i < width; i++) {
-      vector_t *pt = malloc(sizeof(vector_t));
-      assert(pt != NULL);
-
-      *pt = (vector_t) {i, (heights[i] * scale) + base_height};
-
-      list_add(points, pt);
-  }
-  free(heights);
-
-  vector_t *l_corner = vec_init(0.0, -100.0);
-  vector_t *r_corner = vec_init(width, -100.0);
-
-  list_add(points, l_corner);
-  list_add(points, r_corner);
-
-  rgb_color_t color = {0.0, 153.0/255.0, 51.0/255.0};
-  body_t* terrain = body_init(points, mass, color);
-
-  return terrain;
+double interpolate(vector_t left, vector_t right, double x_pos) {
+  double slope = (right.y - left.y) / (right.x - left.x);
+  return left.y + slope * (x_pos - left.x);
 }
 
 double *generate_noise(double width, int granularity, double damping) {
@@ -49,7 +27,7 @@ double *generate_noise(double width, int granularity, double damping) {
   }
 
   int level = 2;
-  while (level < granularity) {
+  while (level <= granularity) {
       size_t pos = (size_t)(10.0/level); // Rounds down to nearest whole number
       for (size_t i = pos; i < width; i += (size_t) 10.0/(level-1)) { // This will be bad for level > 3
           double l_height = height_lst[i-pos];
@@ -59,6 +37,7 @@ double *generate_noise(double width, int granularity, double damping) {
           double noise = (fmod(rand(), 1.0) - 0.5) * 2 * pow(damping, level - 1);
           height_lst[i] = interp + noise;
       }
+      level += 1;
   }
 
   // Fill in gaps
@@ -86,7 +65,30 @@ double *generate_noise(double width, int granularity, double damping) {
   return height_lst;
 }
 
-double interpolate(vector_t left, vector_t right, double x_pos) {
-  double slope = (right.y - left.y) / (right.x - left.x);
-  return left.y + slope * (x_pos - left.x);
+body_t *generate_terrain(double width, double base_height, double scale, int granularity, double damping, double mass) {
+  double* heights = generate_noise(width, granularity, damping);
+  // Going to effectively flip across the Y axis
+  // So I don't have to going through the list in reverse
+
+  list_t *points = list_init(width + 2, free); // + 2 for the bottom left and right vertices
+  for (size_t i=0; i < width; i++) {
+      vector_t *pt = malloc(sizeof(vector_t));
+      assert(pt != NULL);
+
+      *pt = (vector_t) {i, (heights[i] * scale) + base_height};
+
+      list_add(points, pt);
+  }
+  free(heights);
+
+  vector_t *l_corner = vec_init(0.0, -100.0);
+  vector_t *r_corner = vec_init(width, -100.0);
+  list_add(points, r_corner);
+  list_add(points, l_corner);
+
+
+  rgb_color_t color = {0.0, 153.0/255.0, 51.0/255.0};
+  body_t* terrain = body_init(points, mass, color);
+
+  return terrain;
 }

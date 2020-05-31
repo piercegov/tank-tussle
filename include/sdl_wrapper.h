@@ -13,6 +13,8 @@
 #define RIGHT_ARROW 3
 #define DOWN_ARROW 4
 #define SPACE_BAR 5
+#define W 6
+#define S 7
 
 
 /**

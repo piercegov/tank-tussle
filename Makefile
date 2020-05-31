@@ -16,13 +16,13 @@ LIB_MATH = -lm
 LIBS = $(LIB_MATH) -lSDL2 -lSDL2_gfx
 
 # List of demo programs
-DEMOS = breakout
+DEMOS = tank_demo
 # List of C files in "libraries" that we provide
 STAFF_LIBS = test_util sdl_wrapper
 # List of C files in "libraries" that you will write
 STUDENT_LIBS = vector list \
 	body scene \
-	polygon forces interval collision
+	polygon forces interval collision terrain tank render_health
 
 STUDENT_TESTS = $(subst .c,, $(subst tests/student/,,$(wildcard tests/student/*.c)))
 
@@ -32,7 +32,7 @@ STUDENT_TESTS = $(subst .c,, $(subst tests/student/,,$(wildcard tests/student/*.
 # and ".o" to the end of each value in STUDENT_LIBS.
 STUDENT_OBJS = $(addprefix out/,$(STUDENT_LIBS:=.o))
 # List of test suite executables, e.g. "bin/test_suite_vector"
-TEST_BINS = $(addprefix bin/test_suite_,$(STUDENT_LIBS)) bin/student_tests $(addprefix bin/,$(STUDENT_TESTS))
+# TEST_BINS = $(addprefix bin/test_suite_,$(STUDENT_LIBS)) bin/student_tests $(addprefix bin/,$(STUDENT_TESTS))
 # List of demo executables, i.e. "bin/bounce".
 DEMO_BINS = $(addprefix bin/,$(DEMOS))
 # All executables (the concatenation of TEST_BINS and DEMO_BINS)
@@ -73,16 +73,16 @@ bin/%: out/demo-%.o out/sdl_wrapper.o $(STUDENT_OBJS)
 # Builds the test suite executables from the corresponding test .o file
 # and the library .o files. The only difference from the demo build command
 # is that it doesn't link the SDL libraries.
-bin/test_suite_%: out/test_suite_%.o out/test_util.o $(STUDENT_OBJS)
-	$(CC) $(CFLAGS) $(LIB_MATH) $^ -o $@
+# bin/test_suite_%: out/test_suite_%.o out/test_util.o $(STUDENT_OBJS)
+# 	$(CC) $(CFLAGS) $(LIB_MATH) $^ -o $@
 
 # Builds your test suite executable from your test .o file and the library
 # files. Once again we don't link SDL, so your test cannot use SDL either.
-bin/student_tests: out/student_tests.o out/test_util.o $(STUDENT_OBJS)
-	$(CC) $(CFLAGS) $(LIB_MATH) $^ -o $@
-
-bin/%_tests: out/%_tests.o out/test_util.o $(STUDENT_OBJS)
-	$(CC) $(CFLAGS) $(LIB_MATH) $^ -o $@
+# bin/student_tests: out/student_tests.o out/test_util.o $(STUDENT_OBJS)
+# 	$(CC) $(CFLAGS) $(LIB_MATH) $^ -o $@
+#
+# bin/%_tests: out/%_tests.o out/test_util.o $(STUDENT_OBJS)
+# 	$(CC) $(CFLAGS) $(LIB_MATH) $^ -o $@
 
 
 # Runs the tests. "$(TEST_BINS)" requires the test executables to be up to date.

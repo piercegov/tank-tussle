@@ -1,6 +1,8 @@
 #include "vector.h"
 #include <stdio.h>
 #include <math.h>
+#include <assert.h>
+#include <stdlib.h>
 
 const vector_t VEC_ZERO = { 0.0, 0.0 };
 const double THIS_IS_A_HALF = 0.5;
