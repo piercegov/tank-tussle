@@ -213,21 +213,16 @@ int main() {
     body_t *tank1 = tank_init(1.0, (rgb_color_t){0.0, 0.0, 0.0}, (vector_t) {20.0, 50.0}, TANK_SIZE, 1);
     // scene_add_body(scene,tank1);
 
-    scene_add_body(scene, tank_get_health_bar(tank1)->inner);
-    scene_add_body(scene, tank_get_health_bar(tank1)->outer);
-    scene_add_body(scene, tank_get_health_bar(tank1)->health_pool);
-
-    printf("%d\n", scene_bodies(scene));
-    printf("%f\n", body_get_centroid(tank_get_health_bar(tank1)->inner).x);
+    health_bar_t *health_bar = tank_get_health_bar(tank1);
+    scene_add_body(scene, health_bar->inner);
+    scene_add_body(scene, health_bar->outer);
+    scene_add_body(scene, health_bar->health_pool);
 
     // body_t *tank2 = tank_init(1.0, (rgb_color_t){0.0, 0.0, 0.0}, (vector_t) {80.0, 50.0}, TANK_SIZE, 2);
     // scene_add_body(scene,tank2);
 
     body_t *terrain = generate_terrain(MAX.x, BASE_HEIGHT, TERRAIN_SCALE, NUM_TERRAIN_LEVELS, TERRAIN_DAMPING, TERRAIN_MASS);
     // scene_add_body(scene, terrain);
-
-
-
 
     sdl_init(MIN, MAX);
     while (!sdl_is_done(scene)) {

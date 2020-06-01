@@ -8,8 +8,7 @@
 #include <assert.h>
 
 double interpolate(vector_t left, vector_t right, double x_pos) {
-  double slope = (right.y - left.y) / (right.x - left.x);
-  return left.y + slope * (x_pos - left.x);
+    return (left.y * (right.x - x_pos) + right.y * (x_pos - left.x)) / (right.x - left.x);
 }
 
 double *generate_noise(double width, int granularity, double damping) {
@@ -23,7 +22,7 @@ double *generate_noise(double width, int granularity, double damping) {
 
   srand(time(0)); // Set random seed
   for (size_t i=0; i < width; i += 10) {
-      height_lst[i] = (fmod(rand(), 1.0) - 0.5) * 2;
+      height_lst[i] = fmod(rand() / 10.0, 1.0) * 2;
   }
 
   int level = 2;
@@ -34,7 +33,7 @@ double *generate_noise(double width, int granularity, double damping) {
           double r_height = height_lst[i+pos];
 
           double interp = (l_height + r_height)/2;
-          double noise = (fmod(rand(), 1.0) - 0.5) * 2 * pow(damping, level - 1);
+          double noise = fmod(rand() / 10.0, 1.0) * 2 * pow(damping, level - 1);
           height_lst[i] = interp + noise;
       }
       level += 1;
