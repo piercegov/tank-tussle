@@ -28,22 +28,22 @@ double *gap_fill(double *arr, size_t width) {
             // Find the closest left and right points
             vector_t left = {0, 0};
             for (size_t j=0; j<i; j++) {
-                if (height_lst[j] != 0) {
-                    left = (vector_t) {j, height_lst[j]};
+                if (arr[j] != 0) {
+                    left = (vector_t) {j, arr[j]};
                 }
             }
 
             vector_t right = {0, 0};
             for (size_t j=i; j<width; j++) {
-                if (height_lst[j] != 0) {
-                    right = (vector_t) {j, height_lst[j]};
+                if (arr[j] != 0) {
+                    right = (vector_t) {j, arr[j]};
                     break;
                 }
             }
 
             new_lst[i] = interpolate(left, right, i);
         } else {
-            new_lst[i] = height_lst[i];
+            new_lst[i] = arr[i];
         }
     }
 
@@ -55,7 +55,7 @@ double *generate_noise(double width, int granularity, double damping) {
   // Granularity is the number of levels/octaves to generate
   // 0 < damping < 1
 
-  // Will generate a list of numbers between 0,  1
+  // Will generate a list of numbers between -1,  1
   double *height_lst = malloc(width * sizeof(double));
   assert(height_lst != NULL);
 
@@ -64,7 +64,7 @@ double *generate_noise(double width, int granularity, double damping) {
     }
     srand(time(0)); // Set random seed
     for (size_t i=0; i < width; i += 10) {
-      height_lst[i] = fmod(rand() / 10.0, 1.0) * 2;
+      height_lst[i] = (fmod(rand() / 10.0, 1.0) - 0.5) * 2;
     }
 
     int level = 2;
@@ -75,14 +75,11 @@ double *generate_noise(double width, int granularity, double damping) {
           double r_height = height_lst[i+pos];
 
           double interp = (l_height + r_height)/2;
-          double noise = fmod(rand() / 10.0, 1.0) * 2 * pow(damping, level - 1);
+          double noise = (fmod(rand() / 10.0, 1.0) - 0.5) * 2 * pow(damping, level - 1);
           height_lst[i] = interp + noise;
       }
       level += 1;
     }
-
-    double *new_lst = malloc(width * sizeof(double));
-    assert(new_lst != NULL);
 
     // Fill in gaps
     double *new_lst = gap_fill(height_lst, width);
