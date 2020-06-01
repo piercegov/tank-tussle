@@ -34,6 +34,7 @@ body_t *body_init_with_info(list_t *shape, double mass, rgb_color_t color, void 
     vector_t *velo = malloc(sizeof(vector_t));
     assert(body != NULL);
     assert(velo != NULL);
+    assert(mass > 0);
 
     body->info = info;
     body->freer = info_freer;

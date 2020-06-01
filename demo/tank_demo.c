@@ -16,7 +16,7 @@
 
 // Cartesian Coordinates (not pixel values)
 const vector_t MIN = {0.0, 0.0};
-const vector_t MAX = {100.0, 100.0};
+const vector_t MAX = {200.0, 100.0};
 
 const double PI = 3.14159265;
 const double CIRC_DENSITY = 40.0;
@@ -211,17 +211,14 @@ int main() {
     scene_t *scene = scene_init();
 
     body_t *tank1 = tank_init(1.0, (rgb_color_t){0.0, 0.0, 0.0}, (vector_t) {20.0, 50.0}, TANK_SIZE, 1);
-    // scene_add_body(scene,tank1);
+    scene_add_body(scene,tank1);
 
     scene_add_body(scene, tank_get_health_bar(tank1)->inner);
     scene_add_body(scene, tank_get_health_bar(tank1)->outer);
     scene_add_body(scene, tank_get_health_bar(tank1)->health_pool);
 
-    printf("%d\n", scene_bodies(scene));
-    printf("%f\n", body_get_centroid(tank_get_health_bar(tank1)->inner).x);
-
-    // body_t *tank2 = tank_init(1.0, (rgb_color_t){0.0, 0.0, 0.0}, (vector_t) {80.0, 50.0}, TANK_SIZE, 2);
-    // scene_add_body(scene,tank2);
+    body_t *tank2 = tank_init(1.0, (rgb_color_t){0.0, 0.0, 0.0}, (vector_t) {80.0, 50.0}, TANK_SIZE, 2);
+    scene_add_body(scene,tank2);
 
     body_t *terrain = generate_terrain(MAX.x, BASE_HEIGHT, TERRAIN_SCALE, NUM_TERRAIN_LEVELS, TERRAIN_DAMPING, TERRAIN_MASS);
     // scene_add_body(scene, terrain);
