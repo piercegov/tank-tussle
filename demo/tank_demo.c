@@ -21,24 +21,24 @@ const vector_t MAX = {200.0, 100.0};
 const double PI = 3.14159265;
 const double CIRC_DENSITY = 40.0;
 
-const double TANK_SIZE = 20.0;
+const double TANK_SIZE = 5.0;
 const vector_t TANK_VELO = {100.0, 0};
 
 const rgb_color_t BLACK = {0.0, 0.0, 0.0};
 const double DAMAGE = 25.0; //will need to update how this works with variable bullet types
 const double BULLET_MASS = 1.0;
 const double BULLET_SIZE = 2.0;
-const double G = 0.1;
+const double G = 690.0;
 
 const double BASE_POWER = 10.0;
 
-const double BASE_HEIGHT = 40.0;
-const double TERRAIN_SCALE = 5.0;
-const int NUM_TERRAIN_LEVELS = 1;
+const double BASE_HEIGHT = 20.0;
+const double TERRAIN_SCALE = 20.0;
+const int NUM_TERRAIN_LEVELS = 1; // This can only be 1 for now
 const double TERRAIN_DAMPING = 0.5;
 const double TERRAIN_MASS = 10.0;
 
-const double BIG_MASS = 1000000000000.0;
+const double BIG_MASS = 100000000.0;
 const int ANCHOR_OFF = 100000;
 const int ANCHOR_HEIGHT = 10;
 
@@ -85,21 +85,23 @@ void shoot_bullet(scene_t *scene, body_t *tank) {
         body_set_velocity(bullet, velo);
     }
     scene_add_body(scene, bullet);
-    create_newtonian_gravity(scene, G, tank, scene_get_body(scene, 4)); //Fourth body in scene is ground
+    create_newtonian_gravity(scene, G, bullet, scene_get_body(scene, 9)); //Ninth indexed body in scene is ground
     if (type == 1) {
         //Second body in scene is tank 2
         body_t *tank2 = scene_get_body(scene, 1);
         create_damaging_collision(scene, tank2, bullet);
-        tank_set_turn(tank, false);
         tank_set_turn(tank2, true);
     }
     else {
         //Second body in scene is tank 1
         body_t *tank1 = scene_get_body(scene, 0);
         create_damaging_collision(scene, tank1, bullet);
-        tank_set_turn(tank, false);
         tank_set_turn(tank1, true);
     }
+    body_t *terrain = scene_get_body(scene, 8); //this is the terrain index
+    create_oneway_destructive_collision(scene, terrain, bullet);
+    tank_set_turn(tank, false);
+
 }
 
 body_t *tank_turn(scene_t *scene) {
@@ -115,20 +117,18 @@ body_t *tank_turn(scene_t *scene) {
 void render_tank(body_t *tank, double angle, double power, vector_t velocity, double held_time) {
     double current_angle = tank_get_angle(tank);
     double current_power = tank_get_power(tank);
-    vector_t current_velo = body_get_velocity(tank);
-    vector_t new_velocity;
 
-    if (tank_get_number(tank) == 1) {
-        new_velocity = vec_add(current_velo, vec_multiply(held_time, velocity));
-    }
-
-    else {
-        new_velocity = vec_subtract(current_velo, vec_multiply(held_time, velocity));
-    }
+    // if (tank_get_number(tank) == 1) {
+    //     new_velocity = vec_add(current_velo, vec_multiply(held_time, velocity));
+    // }
+    //
+    // else {
+    //     new_velocity = vec_subtract(current_velo, vec_multiply(held_time, velocity));
+    // }
 
     tank_set_angle(tank, current_angle+angle);
     tank_set_power(tank, current_power+power);
-    body_set_velocity(tank, new_velocity);
+    body_set_velocity(tank, velocity);
 }
 
 void shooter_key_handler(char key, key_event_type_t type, double held_time, scene_t *scene) {
@@ -136,37 +136,47 @@ void shooter_key_handler(char key, key_event_type_t type, double held_time, scen
     if (type == KEY_PRESSED) {
         switch (key) {
             case LEFT_ARROW:
-                if (tank_get_number(tank) == 1) {
-                    render_tank(tank, 0.0, 0.0, (vector_t) {-TANK_VELO.x, TANK_VELO.y}, held_time);
-                }
-                else {
-                    render_tank(tank, 0.0, 0.0, TANK_VELO, held_time);
-                }
+                render_tank(tank, 0.0, 0.0, (vector_t) {-TANK_VELO.x, TANK_VELO.y}, held_time);
                 break;
 
             case RIGHT_ARROW:
-                if (tank_get_number(tank) == 2) {
-                    render_tank(tank, 0.0, 0.0, (vector_t) {-TANK_VELO.x, TANK_VELO.y}, held_time);
-                }
-                else {
-                    render_tank(tank, 0.0, 0.0, TANK_VELO, held_time);
-                }
+                render_tank(tank, 0.0, 0.0, (vector_t) {TANK_VELO.x, TANK_VELO.y}, held_time);
                 break;
 
             case UP_ARROW:
-                render_tank(tank, 1.0, 0.0, (vector_t){ 0 , 0 }, held_time);
+                if (tank_get_angle(tank) > 89) {
+                    render_tank(tank, 0.0, 0.0, (vector_t){ 0 , 0 }, held_time);
+                }
+                else {
+                    render_tank(tank, 1.0, 0.0, (vector_t){ 0 , 0 }, held_time);
+                }
                 break;
 
             case DOWN_ARROW:
-                render_tank(tank, -1.0, 0.0, (vector_t){ 0 , 0 }, held_time);
+                if (tank_get_angle(tank) < -89) {
+                    render_tank(tank, 0.0, 0.0, (vector_t){ 0 , 0 }, held_time);
+                }
+                else {
+                    render_tank(tank, -1.0, 0.0, (vector_t){ 0 , 0 }, held_time);
+                }
                 break;
 
             case W:
-                render_tank(tank, 0.0, 1.0, (vector_t){ 0 , 0 }, held_time);
+                if (tank_get_power(tank) > 99) {
+                    render_tank(tank, 0.0, 0.0, (vector_t){ 0 , 0 }, held_time);
+                }
+                else {
+                    render_tank(tank, 0.0, 1.0, (vector_t){ 0 , 0 }, held_time);
+                }
                 break;
 
             case S:
-                render_tank(tank, 0.0, -1.0, (vector_t){ 0 , 0 }, held_time);
+                if (tank_get_power(tank) < 1) {
+                    render_tank(tank, 0.0, 0.0, (vector_t){ 0 , 0 }, held_time);
+                }
+                else {
+                    render_tank(tank, 0.0, -1.0, (vector_t){ 0 , 0 }, held_time);
+                }
                 break;
 
             case SPACE_BAR:
@@ -178,12 +188,6 @@ void shooter_key_handler(char key, key_event_type_t type, double held_time, scen
         render_tank(tank, 0.0, 0.0, (vector_t){ 0 , 0 }, held_time);
     }
 }
-
-// void tangent_bodies(body_t *tank, body_t *terrain) {
-//     vector_t tank_center = body_get_centroid(tank);
-//     vector_t terrain_max = body_get_max(terrain, tank_center.x - 1, tank_center.x + 1);
-//     body_set_centroid(tank, (vector_t){ tank_center.x, terrain_max.y + TANK_SIZE });
-// }
 
 body_t *make_ground(void) {
     list_t *list = list_init(4, (free_func_t) free);
@@ -213,27 +217,32 @@ int main() {
     body_t *tank1 = tank_init(1.0, (rgb_color_t){0.0, 0.0, 0.0}, (vector_t) {20.0, 50.0}, TANK_SIZE, 1);
     scene_add_body(scene,tank1);
 
-<<<<<<< HEAD
-    scene_add_body(scene, tank_get_health_bar(tank1)->inner);
-    scene_add_body(scene, tank_get_health_bar(tank1)->outer);
-    scene_add_body(scene, tank_get_health_bar(tank1)->health_pool);
-
-    body_t *tank2 = tank_init(1.0, (rgb_color_t){0.0, 0.0, 0.0}, (vector_t) {80.0, 50.0}, TANK_SIZE, 2);
+    body_t *tank2 = tank_init(1.0, (rgb_color_t){0.0, 0.5, 0.5}, (vector_t) {70.0, 50.0}, TANK_SIZE, 2);
     scene_add_body(scene,tank2);
-=======
-    health_bar_t *health_bar = tank_get_health_bar(tank1);
-    scene_add_body(scene, health_bar->inner);
-    scene_add_body(scene, health_bar->outer);
-    scene_add_body(scene, health_bar->health_pool);
 
-    // body_t *tank2 = tank_init(1.0, (rgb_color_t){0.0, 0.0, 0.0}, (vector_t) {80.0, 50.0}, TANK_SIZE, 2);
-    // scene_add_body(scene,tank2);
->>>>>>> 3bbabd83976404a250607ebcdadc064e0c914c22
+    health_bar_t *health_bar1 = tank_get_health_bar(tank1);
+    scene_add_body(scene, health_bar1->inner);
+    scene_add_body(scene, health_bar1->outer);
+    scene_add_body(scene, health_bar1->health_pool);
+
+    health_bar_t *health_bar2 = tank_get_health_bar(tank2);
+    scene_add_body(scene, health_bar2->inner);
+    scene_add_body(scene, health_bar2->outer);
+    scene_add_body(scene, health_bar2->health_pool);
 
     body_t *terrain = generate_terrain(MAX.x, BASE_HEIGHT, TERRAIN_SCALE, NUM_TERRAIN_LEVELS, TERRAIN_DAMPING, TERRAIN_MASS);
-    // scene_add_body(scene, terrain);
+    scene_add_body(scene, terrain);
+
+    create_terrain_follow(scene, terrain, tank1);
+    create_terrain_follow(scene, terrain, tank2);
+    create_health_follow(scene, tank1);
+    create_health_follow(scene, tank2);
+
+    body_t *ground = make_ground();
+    scene_add_body(scene, ground);
 
     sdl_init(MIN, MAX);
+    sdl_on_key((key_handler_t) shooter_key_handler);
     while (!sdl_is_done(scene)) {
         double dt = time_since_last_tick();
         scene_tick(scene, dt);

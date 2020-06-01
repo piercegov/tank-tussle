@@ -4,6 +4,7 @@
 #include <stdlib.h>
 #include "render_health.h"
 #include <assert.h>
+#include <stdio.h>
 #include <math.h>
 
 const double MIN_DIST = 1.5;
@@ -37,6 +38,15 @@ typedef struct collision_aux {
 typedef struct physics_aux {
     double elasticity;
 } physics_aux_t;
+
+typedef struct terrain_aux {
+    body_t *terrain;
+    body_t *body;
+} terrain_aux_t;
+
+typedef struct health_aux {
+    body_t *tank;
+} health_aux_t;
 
 
 force_t *force_init(force_creator_t forcer, void *aux, list_t *bodies, free_func_t freer) {
@@ -307,4 +317,75 @@ void create_physics_collision(scene_t *scene,
 
     create_collision(scene, body1, body2, (collision_handler_t) calc_physics_collision,
                      aux, (free_func_t) physics_aux_free);
+}
+
+
+// TANK STUFF
+
+void calc_terrain_follow(terrain_aux_t *aux) {
+    body_t *terrain = aux->terrain;
+    body_t *tank = aux->body;
+
+    double min_x = 100000;
+    double max_x = 0;
+    double min_y = 100000;
+
+    list_t *tank_pts = body_get_shape(tank);
+    for (size_t i=0; i < list_size(tank_pts); i++) {
+        vector_t *pt = (vector_t *) list_get(tank_pts, i);
+        if (pt->x < min_x) {
+            min_x = pt->x;
+        }
+        if (pt->x > max_x) {
+            max_x = pt->x;
+        }
+        if (pt->y < min_y) {
+            min_y = pt->y;
+        }
+    }
+
+    vector_t terrain_max = body_get_max(terrain, min_x, max_x);
+
+    vector_t center = body_get_centroid(tank);
+    // we want to find the distance from the bottom of the tank and terrain_max
+    double height_diff = min_y - terrain_max.y;
+    if (fabs(height_diff) > 0.01) {
+        body_set_centroid(tank, vec_subtract(center, (vector_t) {0, height_diff}));
+    }
+
+}
+
+void create_terrain_follow(scene_t *scene, body_t *terrain, body_t *tank) {
+    list_t *bodies = list_init(2, NULL);
+    list_add(bodies, terrain);
+    list_add(bodies, tank);
+    terrain_aux_t *aux = malloc(sizeof(terrain_aux_t));
+    aux->terrain = terrain;
+    aux->body = tank;
+    scene_add_bodies_force_creator(
+        scene,
+        (force_creator_t) (calc_terrain_follow),
+        aux,
+        bodies,
+        (free_func_t) (free)
+    );
+}
+
+void calc_health_follow(health_aux_t *aux) {
+    body_t *tank = aux->tank;
+    update_health_bar(tank);
+}
+
+void create_health_follow(scene_t *scene, body_t *tank) {
+    list_t *bodies = list_init(1, NULL);
+    list_add(bodies, tank);
+    health_aux_t *aux = malloc(sizeof(health_aux_t));
+    aux->tank = tank;
+    scene_add_bodies_force_creator(
+        scene,
+        (force_creator_t) (calc_health_follow),
+        aux,
+        bodies,
+        (free_func_t) (free)
+    );
 }

@@ -18,11 +18,7 @@ body_t *create_bar(vector_t c, double w, double h, rgb_color_t color) {
     list_add(bar, (void *)vec_init(c.x - (w/2.0), c.y - (h/2.0)));
     list_add(bar, (void *)vec_init(c.x + (w/2.0), c.y -(h/2.0)));
     list_add(bar, (void *)vec_init(c.x + (w/2.0), c.y + (h/2.0)));
-<<<<<<< HEAD
     return body_init(bar, 1.0, color);
-=======
-    return body_init(bar, 0.0, color);
->>>>>>> 3bbabd83976404a250607ebcdadc064e0c914c22
 }
 
 health_bar_t *health_init(body_t *t1) {
@@ -39,6 +35,10 @@ void update_health_bar(body_t *t1) {
     double health = tank_get_health(t1);
     vector_t center = body_get_centroid(t1);
     double new_width = (HEALTH_WIDTH - OUTLINE_WIDTH) * health;
-    body_free(hb->health_pool);
-    hb->health_pool = create_bar(vec_add(center, HEALTH_OFFSET), new_width, HEALTH_HEIGHT - OUTLINE_WIDTH, RED);
+    // hb->outer = create_bar(vec_add(center, HEALTH_OFFSET), HEALTH_WIDTH, HEALTH_HEIGHT, BLACKK);
+    // hb->inner = create_bar(vec_add(center, HEALTH_OFFSET), HEALTH_WIDTH - OUTLINE_WIDTH, HEALTH_HEIGHT - OUTLINE_WIDTH, RED);
+    body_set_centroid(hb->inner, vec_add(center, HEALTH_OFFSET));
+    body_set_centroid(hb->outer, vec_add(center, HEALTH_OFFSET));
+    body_set_centroid(hb->health_pool, vec_add(center, HEALTH_OFFSET));
+    // hb->health_pool = create_bar(vec_add(center, HEALTH_OFFSET), new_width, HEALTH_HEIGHT - OUTLINE_WIDTH, RED);
 }

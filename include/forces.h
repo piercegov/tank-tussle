@@ -147,4 +147,7 @@ void create_physics_collision(
 
 void create_oneway_destructive_collision(scene_t *scene, body_t *body1, body_t *body2);
 
+void create_terrain_follow(scene_t *scene, body_t *terrain, body_t *tank);
+
+void create_health_follow(scene_t *scene, body_t *tank);
 #endif // #ifndef __FORCES_H__

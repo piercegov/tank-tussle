@@ -11,6 +11,12 @@ double interpolate(vector_t left, vector_t right, double x_pos) {
     return (left.y * (right.x - x_pos) + right.y * (x_pos - left.x)) / (right.x - left.x);
 }
 
+/* FOR THE FUTURE:
+    level 1: num_points = width / 10
+    level 2: num_points = width / 5
+    level 3: num_points = width / 2.5 (ish) <-- shit gets weird
+*/
+
 double *generate_noise(double width, int granularity, double damping) {
   // Assuming width on the order of 100
   // Granularity is the number of levels/octaves to generate
@@ -20,13 +26,16 @@ double *generate_noise(double width, int granularity, double damping) {
   double *height_lst = malloc(width * sizeof(double));
   assert(height_lst != NULL);
 
-  srand(time(0)); // Set random seed
-  for (size_t i=0; i < width; i += 10) {
+    for (size_t i=0; i < width; i++) {
+        height_lst[i] = 0;
+    }
+    srand(time(0)); // Set random seed
+    for (size_t i=0; i < width; i += 10) {
       height_lst[i] = fmod(rand() / 10.0, 1.0) * 2;
-  }
+    }
 
-  int level = 2;
-  while (level <= granularity) {
+    int level = 2;
+    while (level <= granularity) {
       size_t pos = (size_t)(10.0/level); // Rounds down to nearest whole number
       for (size_t i = pos; i < width; i += (size_t) 10.0/(level-1)) { // This will be bad for level > 3
           double l_height = height_lst[i-pos];
@@ -37,11 +46,14 @@ double *generate_noise(double width, int granularity, double damping) {
           height_lst[i] = interp + noise;
       }
       level += 1;
-  }
+    }
 
-  // Fill in gaps
-  for (size_t i = 0; i < width; i++) {
-      if (height_lst[i] == 0){ // Likely has not been changed
+    double *new_lst = malloc(width * sizeof(double));
+    assert(new_lst != NULL);
+
+    // Fill in gaps
+    for (size_t i = 0; i < width; i++) {
+      if (height_lst[i] == 0){ // Has not been changed
           // Find the closest left and right points
           vector_t left = {0, 0};
           for (size_t j=0; j<i; j++) {
@@ -54,15 +66,21 @@ double *generate_noise(double width, int granularity, double damping) {
           for (size_t j=i; j<width; j++) {
               if (height_lst[j] != 0) {
                   right = (vector_t) {j, height_lst[j]};
+                  break;
               }
           }
 
-          height_lst[i] = interpolate(left, right, i);
+          new_lst[i] = interpolate(left, right, i);
+      } else {
+          new_lst[i] = height_lst[i];
       }
-  }
+    }
 
-  return height_lst;
+    free(height_lst);
+    return new_lst;
 }
+
+
 
 body_t *generate_terrain(double width, double base_height, double scale, int granularity, double damping, double mass) {
   double* heights = generate_noise(width, granularity, damping);

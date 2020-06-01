@@ -70,7 +70,7 @@ double tank_get_power(body_t *tank) {
 }
 
 double tank_get_angle(body_t *tank) {
-    return tank_get_info(tank)->health;
+    return tank_get_info(tank)->angle;
 }
 
 void tank_set_power(body_t *tank, double new_power) {
