@@ -15,14 +15,47 @@ double interpolate(vector_t left, vector_t right, double x_pos) {
     level 1: num_points = width / 10
     level 2: num_points = width / 5
     level 3: num_points = width / 2.5 (ish) <-- shit gets weird
+
+    PROBLEM: Would need another way of fixing the tanks to the terrain (currently relies on the tank being over vertices)
 */
+
+// Returns a filled/interpolated copy of arr
+double *gap_fill(double *arr, size_t width) {
+    double *new_lst = malloc(width * sizeof(double));
+    assert(new_lst != NULL);
+    for (size_t i = 0; i < width; i++) {
+        if (arr[i] == 0){ // Has not been changed
+            // Find the closest left and right points
+            vector_t left = {0, 0};
+            for (size_t j=0; j<i; j++) {
+                if (height_lst[j] != 0) {
+                    left = (vector_t) {j, height_lst[j]};
+                }
+            }
+
+            vector_t right = {0, 0};
+            for (size_t j=i; j<width; j++) {
+                if (height_lst[j] != 0) {
+                    right = (vector_t) {j, height_lst[j]};
+                    break;
+                }
+            }
+
+            new_lst[i] = interpolate(left, right, i);
+        } else {
+            new_lst[i] = height_lst[i];
+        }
+    }
+
+    return new_lst;
+}
 
 double *generate_noise(double width, int granularity, double damping) {
   // Assuming width on the order of 100
   // Granularity is the number of levels/octaves to generate
   // 0 < damping < 1
 
-  // Will generate a list of numbers between -1,  1
+  // Will generate a list of numbers between 0,  1
   double *height_lst = malloc(width * sizeof(double));
   assert(height_lst != NULL);
 
@@ -37,7 +70,7 @@ double *generate_noise(double width, int granularity, double damping) {
     int level = 2;
     while (level <= granularity) {
       size_t pos = (size_t)(10.0/level); // Rounds down to nearest whole number
-      for (size_t i = pos; i < width; i += (size_t) 10.0/(level-1)) { // This will be bad for level > 3
+      for (size_t i = pos; i < width - pos; i += (size_t) 10.0/(level-1)) { // This will be bad for level > 3
           double l_height = height_lst[i-pos];
           double r_height = height_lst[i+pos];
 
@@ -52,29 +85,7 @@ double *generate_noise(double width, int granularity, double damping) {
     assert(new_lst != NULL);
 
     // Fill in gaps
-    for (size_t i = 0; i < width; i++) {
-      if (height_lst[i] == 0){ // Has not been changed
-          // Find the closest left and right points
-          vector_t left = {0, 0};
-          for (size_t j=0; j<i; j++) {
-              if (height_lst[j] != 0) {
-                  left = (vector_t) {j, height_lst[j]};
-              }
-          }
-
-          vector_t right = {0, 0};
-          for (size_t j=i; j<width; j++) {
-              if (height_lst[j] != 0) {
-                  right = (vector_t) {j, height_lst[j]};
-                  break;
-              }
-          }
-
-          new_lst[i] = interpolate(left, right, i);
-      } else {
-          new_lst[i] = height_lst[i];
-      }
-    }
+    double *new_lst = gap_fill(height_lst, width);
 
     free(height_lst);
     return new_lst;
