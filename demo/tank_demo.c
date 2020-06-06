@@ -34,7 +34,7 @@ const double BASE_POWER = 10.0;
 
 const double BASE_HEIGHT = 20.0;
 const double TERRAIN_SCALE = 20.0;
-const int NUM_TERRAIN_LEVELS = 1; // This can only be 1 for now
+const int NUM_TERRAIN_LEVELS = 6; // This can only be 1 for now
 const double TERRAIN_DAMPING = 0.5;
 const double TERRAIN_MASS = 10.0;
 
@@ -72,8 +72,9 @@ void shoot_bullet(scene_t *scene, body_t *tank) {
     double y_dir = sin(angle);
 
     double power = tank_get_power(tank);
+    power = power + BASE_POWER;
     vector_t velo = vec_multiply(power, (vector_t) {x_dir, y_dir});
-    velo = vec_multiply(BASE_POWER, velo);
+    // velo = vec_multiply(BASE_POWER, velo);
 
     int type = tank_get_number(tank);
     if (type == 1) {
