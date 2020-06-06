@@ -4,12 +4,16 @@
 #include <time.h>
 #include <SDL2/SDL.h>
 #include <SDL2/SDL2_gfxPrimitives.h>
+// #include <SDL_mixer.h>
+// #include <SDL_image.h>
 #include "sdl_wrapper.h"
 
 const char WINDOW_TITLE[] = "CS 3";
 const int WINDOW_WIDTH = 1000;
 const int WINDOW_HEIGHT = 500;
 const double MS_PER_S = 1e3;
+
+// Mix_Chunk *gExplosion = NULL;
 
 /**
  * The coordinate at the center of the screen.
@@ -110,6 +114,8 @@ void sdl_init(vector_t min, vector_t max) {
     center = vec_multiply(0.5, vec_add(min, max));
     max_diff = vec_subtract(max, center);
     SDL_Init(SDL_INIT_EVERYTHING);
+    // Mix_OpenAudio( 44100, MIX_DEFAULT_FORMAT, 2, 2048 )
+
     window = SDL_CreateWindow(
         WINDOW_TITLE,
         SDL_WINDOWPOS_CENTERED,
@@ -119,6 +125,14 @@ void sdl_init(vector_t min, vector_t max) {
         SDL_WINDOW_RESIZABLE
     );
     renderer = SDL_CreateRenderer(window, -1, 0);
+}
+
+bool loadMedia()
+{
+    //Loading success flag
+    bool success = true;
+
+    return success;
 }
 
 bool sdl_is_done(void *ptr) {

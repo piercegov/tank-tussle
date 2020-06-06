@@ -1,5 +1,5 @@
-#include "render_health.h"
 #include "polygon.h"
+#include "power_bar.h"
 #include "list.h"
 #include "vector.h"
 #include "tank.h"
@@ -42,7 +42,7 @@ void update_health_bar(body_t *t1) {
     // body_set_centroid(hb->health_pool, vec_add(center, HEALTH_OFFSET));
 
     list_t *old_points = body_get_points(hb->health_pool);
-    vector_t pool_offset = vec_subtract(vec_add(HEALTH_OFFSET, (vector_t){OUTLINE_WIDTH / 2.0, 0}), (vector_t){(HEALTH_WIDTH - new_width) / 2.0, 0});
+    vector_t pool_offset = vec_subtract(HEALTH_OFFSET, (vector_t){(HEALTH_WIDTH - new_width) / 2.0, 0});
     list_t *new_points = create_rectangle(vec_add(center, pool_offset), new_width, HEALTH_HEIGHT - OUTLINE_WIDTH);
 
     for (size_t i = 0; i < list_size(old_points); i++) {

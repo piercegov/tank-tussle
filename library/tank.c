@@ -12,18 +12,7 @@
 #include "render_health.h"
 
 const double PII = 3.14159265;
-const double CIRC_DENSITY1 = 40.0;
 
-list_t *create_arc(double d, double rads) {
-    double total_pts = CIRC_DENSITY1 * rads;
-    list_t *points = list_init(total_pts, (free_func_t) free);
-    for (size_t i = 0; i < total_pts; i++) {
-        vector_t *new_pt = malloc(sizeof(vector_t));
-        *new_pt = vec_rotate((vector_t) {d / 2, 0}, i / CIRC_DENSITY1);
-        list_add(points, new_pt);
-    }
-    return points;
-}
 
 // When we add the tank to the scene we also need to make sure that we add its health bar
 body_t *tank_init(double mass, rgb_color_t color, vector_t center, double size, int tank_num) {
@@ -32,7 +21,7 @@ body_t *tank_init(double mass, rgb_color_t color, vector_t center, double size, 
 
     info->angle = 0.0;
     info->power = 0.0;
-    info->health = 1.0;
+    info->health = 100.0;
     info->tank_number = tank_num;
 
     // Health Bar freed in scene free
@@ -83,11 +72,8 @@ void tank_set_angle(body_t *tank, double new_angle) {
     info->angle = new_angle;
 }
 
-bool tank_is_destroyed(body_t *tank) {
-    if (tank_get_info(tank)->health <= 0.0) {
-        return true;
-    }
-    return false;
+bool tank_is_dead(body_t *tank) {
+    return (tank_get_info(tank)->health <= 0.0);
 }
 
 bool tank_get_turn(body_t *tank) {

@@ -3,6 +3,6 @@
 
 #include "body.h"
 
-body_t *generate_terrain(double width, double base_height, double scale, int granularity, double damping, double mass);
+body_t *generate_terrain(double width, double base_height, double scale, int granularity, double damping, double mass, double a);
 
 #endif // #ifndef __TERRAIN_H__

@@ -19,7 +19,6 @@ const vector_t MIN = {0.0, 0.0};
 const vector_t MAX = {200.0, 100.0};
 
 const double PI = 3.14159265;
-const double CIRC_DENSITY = 40.0;
 
 const double TANK_SIZE = 5.0;
 const vector_t TANK_VELO = {100.0, 0};
@@ -34,36 +33,25 @@ const double BASE_POWER = 10.0;
 
 const double BASE_HEIGHT = 30.0;
 const double TERRAIN_SCALE = 20.0;
-<<<<<<< HEAD
-const int NUM_TERRAIN_LEVELS = 6; // This can only be 1 for now
-=======
 const int NUM_TERRAIN_LEVELS = 7; // This can only be 1 for now
->>>>>>> e3eb1d9205e201c331c68faa5d2831a84c35b0e1
 const double TERRAIN_DAMPING = 0.5;
 const double TERRAIN_MASS = 10.0;
+const double TERRAIN_AMPLITUDE = 1.0;
 
 const double BIG_MASS = 100000000.0;
 const int ANCHOR_OFF = 100000;
 const int ANCHOR_HEIGHT = 10;
+
+const int GAME_LEVELS = 2;
+const rgb_color_t LIGHT_BLUE = {173.0 / 255.0, 216.0 / 255.0, 230.0 / 255.0};
 
 typedef struct bullet_info {
     double damage;
     //Variable bullet types can be added here
 } bullet_info_t;
 
-list_t *create_arc1(double d, double rads) {
-    double total_pts = CIRC_DENSITY * rads;
-    list_t *points = list_init(total_pts, (free_func_t) free);
-    for (size_t i = 0; i < total_pts; i++) {
-        vector_t *new_pt = malloc(sizeof(vector_t));
-        *new_pt = vec_rotate((vector_t) {d / 2, 0}, i / CIRC_DENSITY);
-        list_add(points, new_pt);
-    }
-    return points;
-}
-
 void shoot_bullet(scene_t *scene, body_t *tank) {
-    list_t *points = create_arc1(BULLET_SIZE, 2*PI);
+    list_t *points = create_arc(BULLET_SIZE, 2*PI);
     bullet_info_t *bullet_aux = malloc(sizeof(bullet_info_t));
     bullet_aux->damage = DAMAGE;
     body_t *bullet = body_init_with_info(points, BULLET_MASS, BLACK, (void *) bullet_aux, free);
@@ -78,7 +66,6 @@ void shoot_bullet(scene_t *scene, body_t *tank) {
     double power = tank_get_power(tank);
     power = power + BASE_POWER;
     vector_t velo = vec_multiply(power, (vector_t) {x_dir, y_dir});
-    // velo = vec_multiply(BASE_POWER, velo);
 
     int type = tank_get_number(tank);
     if (type == 1) {
@@ -90,50 +77,69 @@ void shoot_bullet(scene_t *scene, body_t *tank) {
         body_set_velocity(bullet, velo);
     }
     scene_add_body(scene, bullet);
-    create_newtonian_gravity(scene, G, bullet, scene_get_body(scene, 9)); //Ninth indexed body in scene is ground
+    create_newtonian_gravity(scene, G, bullet, scene_get_body(scene, 10)); //Tenth indexed body in scene is ground
+
+    body_t *other_tank;
     if (type == 1) {
         //Second body in scene is tank 2
-        body_t *tank2 = scene_get_body(scene, 1);
-        create_damaging_collision(scene, tank2, bullet);
-        tank_set_turn(tank2, true);
+        other_tank = scene_get_body(scene, 2);
     }
     else {
         //Second body in scene is tank 1
-        body_t *tank1 = scene_get_body(scene, 0);
-        create_damaging_collision(scene, tank1, bullet);
-        tank_set_turn(tank1, true);
+        other_tank = scene_get_body(scene, 1);
     }
-    body_t *terrain = scene_get_body(scene, 8); //this is the terrain index
-    create_oneway_destructive_collision(scene, terrain, bullet);
+
+    create_damaging_collision(scene, other_tank, bullet);
+    tank_set_turn(other_tank, true);
+
+    body_t *terrain = scene_get_body(scene, 9); //this is the terrain index
+    // create_oneway_destructive_collision(scene, terrain, bullet);
+    create_bullet_destroy(scene, terrain, bullet);
     tank_set_turn(tank, false);
 
 }
 
 body_t *tank_turn(scene_t *scene) {
-    body_t *tank1 = scene_get_body(scene, 0);
+    body_t *tank1 = scene_get_body(scene, 1);
     bool turn1 = tank_get_turn(tank1);
     if (turn1) {
         return tank1;
     }
-    body_t *tank2 = scene_get_body(scene, 1);
+    body_t *tank2 = scene_get_body(scene, 2);
     return tank2;
+}
+
+void tank_wall_collision(body_t *tank) {
+    list_t *shape = body_get_shape(tank);
+    vector_t velo = body_get_velocity(tank);
+    int tank_num = tank_get_number(tank);
+    for (size_t i = 0; i < list_size(shape); i++) {
+        vector_t *current_vec = list_get(shape, i);
+        if (tank_num == 1) {
+            if ((current_vec->x > MAX.x && velo.x > 0) || (current_vec->x < MIN.x && velo.x < 0)) {
+                velo.x = 0.0;
+            }
+        }
+
+        else if (tank_num == 2) {
+            if ((current_vec->x > MAX.x && velo.x > 0) || (current_vec->x < MIN.x && velo.x < 0)) {
+                velo.x = 0.0;
+            }
+        }
+    }
+    body_set_velocity(tank, velo);
+    list_free(shape);
 }
 
 void render_tank(body_t *tank, double angle, double power, vector_t velocity, double held_time) {
     double current_angle = tank_get_angle(tank);
     double current_power = tank_get_power(tank);
 
-    // if (tank_get_number(tank) == 1) {
-    //     new_velocity = vec_add(current_velo, vec_multiply(held_time, velocity));
-    // }
-    //
-    // else {
-    //     new_velocity = vec_subtract(current_velo, vec_multiply(held_time, velocity));
-    // }
-
     tank_set_angle(tank, current_angle+angle);
     tank_set_power(tank, current_power+power);
+
     body_set_velocity(tank, velocity);
+    tank_wall_collision(tank);
 }
 
 void shooter_key_handler(char key, key_event_type_t type, double held_time, scene_t *scene) {
@@ -194,6 +200,15 @@ void shooter_key_handler(char key, key_event_type_t type, double held_time, scen
     }
 }
 
+body_t *make_sky(rgb_color_t sky_color) {
+    vector_t center = {(MAX.x / 2), (MAX.y / 2)};
+    double height = MAX.y;
+    double width = MAX.x;
+    list_t *points = create_rectangle(center, width, height);
+    body_t *rec = body_init(points, 1.0, sky_color);
+    return rec;
+}
+
 body_t *make_ground(void) {
     list_t *list = list_init(4, (free_func_t) free);
     vector_t *p = malloc(sizeof(vector_t));
@@ -216,12 +231,14 @@ body_t *make_ground(void) {
     return body_init(list, BIG_MASS, color);
 }
 
-int main() {
+scene_t *init_new_game() {
     scene_t *scene = scene_init();
+
+    body_t *sky = make_sky(LIGHT_BLUE);
+    scene_add_body(scene, sky);
 
     body_t *tank1 = tank_init(1.0, (rgb_color_t){0.0, 0.0, 0.0}, (vector_t) {20.0, 50.0}, TANK_SIZE, 1);
     scene_add_body(scene,tank1);
-
     body_t *tank2 = tank_init(1.0, (rgb_color_t){0.0, 0.5, 0.5}, (vector_t) {70.0, 50.0}, TANK_SIZE, 2);
     scene_add_body(scene,tank2);
 
@@ -229,15 +246,13 @@ int main() {
     scene_add_body(scene, health_bar1->inner);
     scene_add_body(scene, health_bar1->outer);
     scene_add_body(scene, health_bar1->health_pool);
-
     health_bar_t *health_bar2 = tank_get_health_bar(tank2);
     scene_add_body(scene, health_bar2->inner);
     scene_add_body(scene, health_bar2->outer);
     scene_add_body(scene, health_bar2->health_pool);
 
-    body_t *terrain = generate_terrain(MAX.x, BASE_HEIGHT, TERRAIN_SCALE, NUM_TERRAIN_LEVELS, TERRAIN_DAMPING, TERRAIN_MASS);
+    body_t *terrain = generate_terrain(MAX.x, BASE_HEIGHT, TERRAIN_SCALE, NUM_TERRAIN_LEVELS, TERRAIN_DAMPING, TERRAIN_MASS, TERRAIN_AMPLITUDE);
     scene_add_body(scene, terrain);
-
     create_terrain_follow(scene, terrain, tank1);
     create_terrain_follow(scene, terrain, tank2);
     create_health_follow(scene, tank1);
@@ -246,12 +261,48 @@ int main() {
     body_t *ground = make_ground();
     scene_add_body(scene, ground);
 
+    return scene;
+}
+
+int main() {
+    scene_t *scene = init_new_game();
+
     sdl_init(MIN, MAX);
     sdl_on_key((key_handler_t) shooter_key_handler);
+
     while (!sdl_is_done(scene)) {
         double dt = time_since_last_tick();
         scene_tick(scene, dt);
         sdl_render_scene(scene);
+
+        body_t *tank1 = scene_get_body(scene, 1);
+        body_t *tank2 = scene_get_body(scene, 2);
+        int tank1_wins = 0;
+        int tank2_wins = 0;
+
+        if (tank_is_dead(tank1)) {
+            printf("Player 2 wins!\n"); //Text rendering later?
+            tank2_wins++;
+            if (tank2_wins < GAME_LEVELS) {
+                scene_free(scene);
+                scene = init_new_game();
+            }
+            else {
+                printf("Game over, Player 2 has won!\n");
+            }
+        }
+
+        else if (tank_is_dead(tank2)) {
+            printf("Player 1 wins!\n"); //Text rendering later?
+            tank1_wins++;
+            if (tank1_wins < GAME_LEVELS) {
+                scene_free(scene);
+                scene = init_new_game();
+            }
+            else {
+                printf("Game over, Player 1 has won!\n");
+            }
+        }
     }
     scene_free(scene);
     return 0;

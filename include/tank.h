@@ -38,7 +38,7 @@ void tank_set_power(body_t *tank, double new_power);
 
 void tank_set_angle(body_t *tank, double new_angle);
 
-bool tank_is_destroyed(body_t *tank);
+bool tank_is_dead(body_t *tank);
 
 bool tank_get_turn(body_t *tank);
 

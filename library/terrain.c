@@ -11,14 +11,6 @@ double interpolate(vector_t left, vector_t right, double x_pos) {
     return (left.y * (right.x - x_pos) + right.y * (x_pos - left.x)) / (right.x - left.x);
 }
 
-/* FOR THE FUTURE:
-    level 1: num_points = width / 10
-    level 2: num_points = width / 5
-    level 3: num_points = width / 2.5 (ish) <-- shit gets weird
-
-    PROBLEM: Would need another way of fixing the tanks to the terrain (currently relies on the tank being over vertices)
-*/
-
 // Returns a filled/interpolated copy of arr
 double *gap_fill(double *arr, size_t width) {
     double *new_lst = malloc(width * sizeof(double));
@@ -50,7 +42,14 @@ double *gap_fill(double *arr, size_t width) {
     return new_lst;
 }
 
-double *generate_noise(double width, int granularity, double damping) {
+void amplify_heights(double *heights, double width, double a) {
+    for (size_t i=0; i < width; i++) {
+        double amp = (30 * pow(a, 3)) / (pow(0.5 * (i - width/2), 2) + 4 * pow(a, 2)) + 1; // peak at 0
+        heights[i] *= amp;
+    }
+}
+
+double *generate_noise(double width, int granularity, double damping, double a) {
   // Assuming width on the order of 100
   // Granularity is the number of levels/octaves to generate
   // 0 < damping < 1
@@ -81,17 +80,22 @@ double *generate_noise(double width, int granularity, double damping) {
       level += 1;
     }
 
+
     // Fill in gaps
     double *new_lst = gap_fill(height_lst, width);
 
     free(height_lst);
+
+    // Amplify middle points
+    amplify_heights(new_lst, width, a);
+
     return new_lst;
 }
 
 
 
-body_t *generate_terrain(double width, double base_height, double scale, int granularity, double damping, double mass) {
-  double* heights = generate_noise(width, granularity, damping);
+body_t *generate_terrain(double width, double base_height, double scale, int granularity, double damping, double mass, double a) {
+  double* heights = generate_noise(width, granularity, damping, a);
   // Going to effectively flip across the Y axis
   // So I don't have to going through the list in reverse
 

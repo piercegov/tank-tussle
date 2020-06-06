@@ -48,6 +48,10 @@ typedef struct health_aux {
     body_t *tank;
 } health_aux_t;
 
+typedef struct bullet_aux {
+    body_t *terrain;
+    body_t *body;
+} bullet_aux_t;
 
 force_t *force_init(force_creator_t forcer, void *aux, list_t *bodies, free_func_t freer) {
     force_t *force = malloc(sizeof(force_t));
@@ -263,9 +267,13 @@ void calc_oneway_destructive_collision(body_t *body1, body_t *body2, vector_t ax
 }
 
 void calc_damaging_collision(body_t *body1, body_t *body2, vector_t axis, void *aux) {
-    double health = tank_get_health(aux);
     double damage = *(double *)body_get_info(body2);
-    tank_decrease_health(body1, health-damage);
+    tank_decrease_health(body1, damage);
+
+    // if (tank_is_dead(body1)){
+    //     body_remove(body1);
+    // }
+
     body_remove(body2);
 }
 
@@ -384,6 +392,52 @@ void create_health_follow(scene_t *scene, body_t *tank) {
     scene_add_bodies_force_creator(
         scene,
         (force_creator_t) (calc_health_follow),
+        aux,
+        bodies,
+        (free_func_t) (free)
+    );
+}
+
+void calc_bullet_destroy(bullet_aux_t *aux) {
+    body_t *terrain = aux->terrain;
+    body_t *bullet = aux->body;
+
+    double min_x = 100000;
+    double max_x = 0;
+    double min_y = 100000;
+
+    list_t *bullet_pts = body_get_shape(bullet);
+    for (size_t i=0; i < list_size(bullet_pts); i++) {
+        vector_t *pt = (vector_t *) list_get(bullet_pts, i);
+        if (pt->x < min_x) {
+            min_x = pt->x;
+        }
+        if (pt->x > max_x) {
+            max_x = pt->x;
+        }
+        if (pt->y < min_y) {
+            min_y = pt->y;
+        }
+    }
+
+    vector_t terrain_max = body_get_max(terrain, min_x, max_x);
+
+    double height_diff = min_y - terrain_max.y;
+    if (height_diff <= 0) {
+        body_remove(bullet);
+    }
+}
+
+void create_bullet_destroy(scene_t *scene, body_t *terrain, body_t *bullet) {
+    list_t *bodies = list_init(2, NULL);
+    list_add(bodies, terrain);
+    list_add(bodies, bullet);
+    terrain_aux_t *aux = malloc(sizeof(terrain_aux_t));
+    aux->terrain = terrain;
+    aux->body = bullet;
+    scene_add_bodies_force_creator(
+        scene,
+        (force_creator_t) (calc_bullet_destroy),
         aux,
         bodies,
         (free_func_t) (free)

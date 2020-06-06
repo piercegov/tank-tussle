@@ -15,6 +15,11 @@
  */
 double polygon_area(list_t *polygon);
 
+list_t *create_rectangle(vector_t c, double w, double h);
+
+list_t *create_arc(double d, double rads);
+
+
 /**
  * Computes the center of mass of a polygon.
  * See https://en.wikipedia.org/wiki/Centroid#Of_a_polygon.

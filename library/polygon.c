@@ -6,6 +6,27 @@
 #include <stdio.h>
 
 const double SIX = 6;
+const double CIRC_DENSITY = 40.0;
+
+list_t *create_rectangle(vector_t c, double w, double h) {
+    list_t *bar = list_init(4, (free_func_t) free);
+    list_add(bar, (void *)vec_init(c.x - (w/2.0), c.y + (h/2.0)));
+    list_add(bar, (void *)vec_init(c.x - (w/2.0), c.y - (h/2.0)));
+    list_add(bar, (void *)vec_init(c.x + (w/2.0), c.y -(h/2.0)));
+    list_add(bar, (void *)vec_init(c.x + (w/2.0), c.y + (h/2.0)));
+    return bar;
+}
+
+list_t *create_arc(double d, double rads) {
+    double total_pts = CIRC_DENSITY * rads;
+    list_t *points = list_init(total_pts, (free_func_t) free);
+    for (size_t i = 0; i < total_pts; i++) {
+        vector_t *new_pt = malloc(sizeof(vector_t));
+        *new_pt = vec_rotate((vector_t) {d / 2, 0}, i / CIRC_DENSITY);
+        list_add(points, new_pt);
+    }
+    return points;
+}
 
 double polygon_area(list_t *polygon) {
   double area = 0.0;
