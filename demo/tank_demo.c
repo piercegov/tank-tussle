@@ -32,9 +32,13 @@ const double G = 690.0;
 
 const double BASE_POWER = 10.0;
 
-const double BASE_HEIGHT = 20.0;
+const double BASE_HEIGHT = 30.0;
 const double TERRAIN_SCALE = 20.0;
+<<<<<<< HEAD
 const int NUM_TERRAIN_LEVELS = 6; // This can only be 1 for now
+=======
+const int NUM_TERRAIN_LEVELS = 7; // This can only be 1 for now
+>>>>>>> e3eb1d9205e201c331c68faa5d2831a84c35b0e1
 const double TERRAIN_DAMPING = 0.5;
 const double TERRAIN_MASS = 10.0;
 
