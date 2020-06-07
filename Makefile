@@ -22,7 +22,7 @@ STAFF_LIBS = test_util sdl_wrapper
 # List of C files in "libraries" that you will write
 STUDENT_LIBS = vector list \
 	body scene \
-	polygon forces interval collision terrain tank render_health
+	polygon forces interval collision terrain tank render_health power_bar fuel_bar
 
 STUDENT_TESTS = $(subst .c,, $(subst tests/student/,,$(wildcard tests/student/*.c)))
 

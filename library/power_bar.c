@@ -5,45 +5,43 @@
 #include "tank.h"
 #include <stdlib.h>
 
-const double OUTLINE_WIDTH = 0.5;
-const vector_t HEALTH_OFFSET = {0.0, 15.0};
-const double HEALTH_WIDTH = 15.0;
-const double HEALTH_HEIGHT = 2.0;
-const rgb_color_t RED = {1.0, 0.0, 0.0};
-const rgb_color_t BLACKK = {0.0, 0.0, 0.0};
-const rgb_color_t GREEN = {0.0, 1.0, 0.0};
+const double OUTLINE_WIDTHH = 0.5;
+const double POWER_WIDTH = 15.0;
+const double POWER_HEIGHT = 2.0;
+const rgb_color_t WHITE = {1.0, 1.0, 1.0};
+const rgb_color_t BLAC = {0.0, 0.0, 0.0};
+const rgb_color_t BLUE = {0.0, 0.0, 1.0};
 
-
-health_bar_t *health_init(body_t *t1) {
-    health_bar_t *hb = malloc(sizeof(health_bar_t));
-    vector_t center = body_get_centroid(t1);
-    list_t *outer_l = create_rectangle(vec_add(center, HEALTH_OFFSET), HEALTH_WIDTH, HEALTH_HEIGHT);
-    list_t *inner_l = create_rectangle(vec_add(center, HEALTH_OFFSET), HEALTH_WIDTH - OUTLINE_WIDTH, HEALTH_HEIGHT - OUTLINE_WIDTH);
-    list_t *health_l = create_rectangle(vec_add(center, HEALTH_OFFSET), HEALTH_WIDTH - OUTLINE_WIDTH, HEALTH_HEIGHT - OUTLINE_WIDTH);
-    hb->outer = body_init(outer_l, 1.0, BLACKK);
-    hb->inner = body_init(inner_l, 1.0, RED);
-    hb->health_pool = body_init(health_l, 1.0, GREEN);
-    return hb;
+power_bar_t *power_bar_init(body_t *t1, vector_t center) {
+    power_bar_t *pb = malloc(sizeof(power_bar_t));
+    list_t *outer_l = create_rectangle(center, POWER_WIDTH, POWER_HEIGHT);
+    list_t *inner_l = create_rectangle(center, POWER_WIDTH - OUTLINE_WIDTHH, POWER_HEIGHT - OUTLINE_WIDTHH);
+    list_t *power_l = create_rectangle(center, 0.1, POWER_HEIGHT - OUTLINE_WIDTHH);
+    pb->outer = body_init(outer_l, 1.0, BLAC);
+    pb->inner = body_init(inner_l, 1.0, WHITE);
+    pb->power_level = body_init(power_l, 1.0, BLUE);
+    return pb;
 }
 
-void update_health_bar(body_t *t1) {
-    health_bar_t *hb = tank_get_health_bar(t1);
-    double health = tank_get_health(t1);
-    vector_t center = body_get_centroid(t1);
+void update_power_bar(body_t *t1) {
+    power_bar_t *pb = tank_get_power_bar(t1);
+    double power = tank_get_power(t1);
+    vector_t center = body_get_centroid(pb->outer);
 
-    if (health < 0) {
-        health = 0;
+    if (power < 0) {
+        power = 0;
     }
-    double new_width = (HEALTH_WIDTH - OUTLINE_WIDTH) * (double)health / 100.0;
-    // hb->outer = create_bar(vec_add(center, HEALTH_OFFSET), HEALTH_WIDTH, HEALTH_HEIGHT, BLACKK);
-    // hb->inner = create_bar(vec_add(center, HEALTH_OFFSET), HEALTH_WIDTH - OUTLINE_WIDTH, HEALTH_HEIGHT - OUTLINE_WIDTH, RED);
-    body_set_centroid(hb->inner, vec_add(center, HEALTH_OFFSET));
-    body_set_centroid(hb->outer, vec_add(center, HEALTH_OFFSET));
-    // body_set_centroid(hb->health_pool, vec_add(center, HEALTH_OFFSET));
 
-    list_t *old_points = body_get_points(hb->health_pool);
-    vector_t pool_offset = vec_subtract(HEALTH_OFFSET, (vector_t){(HEALTH_WIDTH - new_width) / 2.0, 0});
-    list_t *new_points = create_rectangle(vec_add(center, pool_offset), new_width, HEALTH_HEIGHT - OUTLINE_WIDTH);
+    double new_width = (POWER_WIDTH - OUTLINE_WIDTHH) * (double) power / 100.0;
+    // hb->outer = create_bar(vec_add(center, POWER_OFFSET), POWER_WIDTH, POWER_HEIGHT, BLACKK);
+    // hb->inner = create_bar(vec_add(center, POWER_OFFSET), POWER_WIDTH - OUTLINE_WIDTH, POWER_HEIGHT - OUTLINE_WIDTH, RED);
+    // body_set_centroid(pb->inner, vec_add(center, POWER_OFFSET));
+    // body_set_centroid(pb->outer, vec_add(center, POWER_OFFSET));
+    // body_set_centroid(hb->health_pool, vec_add(center, POWER_OFFSET));
+
+    list_t *old_points = body_get_points(pb->power_level);
+    vector_t pool_offset = (vector_t){(POWER_WIDTH - new_width) / 2.0, 0};
+    list_t *new_points = create_rectangle(vec_subtract(center, pool_offset), new_width, POWER_HEIGHT - OUTLINE_WIDTHH);
 
     for (size_t i = 0; i < list_size(old_points); i++) {
         list_remove(old_points, i);
@@ -54,6 +52,4 @@ void update_health_bar(body_t *t1) {
     }
     free(new_points);
 
-
-    // hb->health_pool = create_bar(vec_add(center, HEALTH_OFFSET), new_width, HEALTH_HEIGHT - OUTLINE_WIDTH, RED);
 }

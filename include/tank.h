@@ -4,16 +4,21 @@
 #include "list.h"
 #include "vector.h"
 #include "render_health.h"
+#include "power_bar.h"
 #include "body.h"
 #include <stdbool.h>
+#include "fuel_bar.h"
 
 typedef struct tank tank_t;
 
 typedef struct tank_info {
     health_bar_t *health_bar;
+    power_bar_t *power_bar;
+    fuel_bar_t *fuel_bar;
     double angle;
     double power;
     double health;
+    double fuel;
     bool turn;
     int tank_number;
 } tank_info_t;
@@ -30,7 +35,17 @@ double tank_get_health(body_t *tank);
 
 void tank_decrease_health(body_t *tank, double health_decrease);
 
+void tank_decrease_fuel(body_t *tank, double fuel_decrease);
+
+fuel_bar_t *tank_get_fuel_bar(body_t *tank);
+
+double tank_get_fuel(body_t *tank);
+
+void tank_set_fuel(body_t *tank, double new_fuel);
+
 double tank_get_power(body_t *tank);
+
+power_bar_t *tank_get_power_bar(body_t *tank);
 
 double tank_get_angle(body_t *tank);
 

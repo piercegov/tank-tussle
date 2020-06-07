@@ -13,6 +13,8 @@
 #include <time.h>
 #include <stdbool.h>
 #include <assert.h>
+#include "power_bar.h"
+#include "fuel_bar.h"
 
 // Cartesian Coordinates (not pixel values)
 const vector_t MIN = {0.0, 0.0};
@@ -33,10 +35,13 @@ const double BASE_POWER = 10.0;
 
 const double BASE_HEIGHT = 30.0;
 const double TERRAIN_SCALE = 20.0;
-const int NUM_TERRAIN_LEVELS = 7; // This can only be 1 for now
+const int NUM_TERRAIN_LEVELS = 7;
 const double TERRAIN_DAMPING = 0.5;
 const double TERRAIN_MASS = 10.0;
 const double TERRAIN_AMPLITUDE = 1.0;
+const double FUEL_CONSTANT = 2.0;
+const double NEW_FUEL = 10.0;
+const double WIND = 0.0;
 
 const double BIG_MASS = 100000000.0;
 const int ANCHOR_OFF = 100000;
@@ -49,6 +54,51 @@ typedef struct bullet_info {
     double damage;
     //Variable bullet types can be added here
 } bullet_info_t;
+
+double rand_num() {
+    return (double) rand() / (double) RAND_MAX;
+}
+
+body_t *tank_turn(scene_t *scene) {
+    body_t *tank1 = scene_get_body(scene, 1);
+    bool turn1 = tank_get_turn(tank1);
+    if (turn1) {
+        return tank1;
+    }
+    body_t *tank2 = scene_get_body(scene, 2);
+    return tank2;
+}
+
+void tank_wall_collision(body_t *tank) {
+    list_t *shape = body_get_shape(tank);
+    vector_t velo = body_get_velocity(tank);
+    for (size_t i = 0; i < list_size(shape); i++) {
+        vector_t *current_vec = list_get(shape, i);
+        if ((current_vec->x > MAX.x && velo.x > 0) || (current_vec->x < MIN.x && velo.x < 0)) {
+            velo.x = 0.0;
+        }
+    }
+    body_set_velocity(tank, velo);
+    list_free(shape);
+}
+
+void render_tank(body_t *tank, double angle, double power, vector_t velocity, double held_time) {
+    double current_angle = tank_get_angle(tank);
+    double current_power = tank_get_power(tank);
+
+    tank_set_angle(tank, current_angle+angle);
+    tank_set_power(tank, current_power+power);
+
+    if (tank_get_fuel(tank) > 0) {
+        tank_wall_collision(tank);
+        body_set_velocity(tank, velocity);
+        tank_wall_collision(tank);
+        tank_decrease_fuel(tank, FUEL_CONSTANT);
+    }
+    else if (tank_get_fuel(tank) <= 0) {
+        body_set_velocity(tank, VEC_ZERO);
+    }
+}
 
 void shoot_bullet(scene_t *scene, body_t *tank) {
     list_t *points = create_arc(BULLET_SIZE, 2*PI);
@@ -77,11 +127,12 @@ void shoot_bullet(scene_t *scene, body_t *tank) {
         body_set_velocity(bullet, velo);
     }
     scene_add_body(scene, bullet);
-    create_newtonian_gravity(scene, G, bullet, scene_get_body(scene, 10)); //Tenth indexed body in scene is ground
+    create_newtonian_gravity(scene, G, bullet, scene_get_body(scene, 10)); //This is the ground index
+    create_drag(scene, WIND, bullet);
 
     body_t *other_tank;
     if (type == 1) {
-        //Second body in scene is tank 2
+        //First body in scene is tank 2
         other_tank = scene_get_body(scene, 2);
     }
     else {
@@ -90,56 +141,18 @@ void shoot_bullet(scene_t *scene, body_t *tank) {
     }
 
     create_damaging_collision(scene, other_tank, bullet);
+    double current_fuel = tank_get_fuel(other_tank);
+    if (current_fuel + NEW_FUEL > 100) {
+        tank_set_fuel(other_tank, 100.0);
+    }
+    else {
+        tank_set_fuel(other_tank, current_fuel + NEW_FUEL);
+    }
     tank_set_turn(other_tank, true);
 
-    body_t *terrain = scene_get_body(scene, 9); //this is the terrain index
-    // create_oneway_destructive_collision(scene, terrain, bullet);
+    body_t *terrain = scene_get_body(scene, 9); //This is the terrain index
     create_bullet_destroy(scene, terrain, bullet);
     tank_set_turn(tank, false);
-
-}
-
-body_t *tank_turn(scene_t *scene) {
-    body_t *tank1 = scene_get_body(scene, 1);
-    bool turn1 = tank_get_turn(tank1);
-    if (turn1) {
-        return tank1;
-    }
-    body_t *tank2 = scene_get_body(scene, 2);
-    return tank2;
-}
-
-void tank_wall_collision(body_t *tank) {
-    list_t *shape = body_get_shape(tank);
-    vector_t velo = body_get_velocity(tank);
-    int tank_num = tank_get_number(tank);
-    for (size_t i = 0; i < list_size(shape); i++) {
-        vector_t *current_vec = list_get(shape, i);
-        if (tank_num == 1) {
-            if ((current_vec->x > MAX.x && velo.x > 0) || (current_vec->x < MIN.x && velo.x < 0)) {
-                velo.x = 0.0;
-            }
-        }
-
-        else if (tank_num == 2) {
-            if ((current_vec->x > MAX.x && velo.x > 0) || (current_vec->x < MIN.x && velo.x < 0)) {
-                velo.x = 0.0;
-            }
-        }
-    }
-    body_set_velocity(tank, velo);
-    list_free(shape);
-}
-
-void render_tank(body_t *tank, double angle, double power, vector_t velocity, double held_time) {
-    double current_angle = tank_get_angle(tank);
-    double current_power = tank_get_power(tank);
-
-    tank_set_angle(tank, current_angle+angle);
-    tank_set_power(tank, current_power+power);
-
-    body_set_velocity(tank, velocity);
-    tank_wall_collision(tank);
 }
 
 void shooter_key_handler(char key, key_event_type_t type, double held_time, scene_t *scene) {
@@ -243,12 +256,12 @@ scene_t *init_new_game() {
     scene_add_body(scene,tank2);
 
     health_bar_t *health_bar1 = tank_get_health_bar(tank1);
-    scene_add_body(scene, health_bar1->inner);
     scene_add_body(scene, health_bar1->outer);
+    scene_add_body(scene, health_bar1->inner);
     scene_add_body(scene, health_bar1->health_pool);
     health_bar_t *health_bar2 = tank_get_health_bar(tank2);
-    scene_add_body(scene, health_bar2->inner);
     scene_add_body(scene, health_bar2->outer);
+    scene_add_body(scene, health_bar2->inner);
     scene_add_body(scene, health_bar2->health_pool);
 
     body_t *terrain = generate_terrain(MAX.x, BASE_HEIGHT, TERRAIN_SCALE, NUM_TERRAIN_LEVELS, TERRAIN_DAMPING, TERRAIN_MASS, TERRAIN_AMPLITUDE);
@@ -261,14 +274,37 @@ scene_t *init_new_game() {
     body_t *ground = make_ground();
     scene_add_body(scene, ground);
 
+    power_bar_t *power_bar1 = tank_get_power_bar(tank1);
+    scene_add_body(scene, power_bar1->outer);
+    scene_add_body(scene, power_bar1->inner);
+    scene_add_body(scene, power_bar1->power_level);
+
+    power_bar_t *power_bar2 = tank_get_power_bar(tank2);
+    scene_add_body(scene, power_bar2->outer);
+    scene_add_body(scene, power_bar2->inner);
+    scene_add_body(scene, power_bar2->power_level);
+
+    fuel_bar_t *fuel_bar1 = tank_get_fuel_bar(tank1);
+    scene_add_body(scene, fuel_bar1->outer);
+    scene_add_body(scene, fuel_bar1->inner);
+    scene_add_body(scene, fuel_bar1->fuel_level);
+
+    fuel_bar_t *fuel_bar2 = tank_get_fuel_bar(tank2);
+    scene_add_body(scene, fuel_bar2->outer);
+    scene_add_body(scene, fuel_bar2->inner);
+    scene_add_body(scene, fuel_bar2->fuel_level);
+
     return scene;
 }
 
 int main() {
+    srand(time(NULL));
     scene_t *scene = init_new_game();
 
     sdl_init(MIN, MAX);
     sdl_on_key((key_handler_t) shooter_key_handler);
+
+    //SDL_Surface *tank = IMG_Load("sprite6.png");
 
     while (!sdl_is_done(scene)) {
         double dt = time_since_last_tick();
