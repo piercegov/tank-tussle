@@ -5,6 +5,7 @@
 #include "color.h"
 #include "list.h"
 #include "vector.h"
+#include <SDL2/SDL_image.h>
 
 /**
  * A rigid body constrained to the plane.
@@ -214,5 +215,15 @@ vector_t body_get_max(body_t *b, double min_x, double max_x);
  * @return the min y vector
  */
 vector_t body_get_min(body_t *b, double min_x, double max_x);
+
+SDL_Texture *body_get_texture(body_t *b);
+
+vector_t body_get_texture_size(body_t *b);
+
+void body_set_texture(body_t *b, SDL_Texture *texture, vector_t sprite_size);
+
+SDL_Rect *body_get_texture_rect(body_t *b);
+
+void body_set_texture_rect(body_t *b, vector_t upper_left, vector_t dimensions);
 
 #endif // #ifndef __BODY_H__

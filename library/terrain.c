@@ -44,7 +44,7 @@ double *gap_fill(double *arr, size_t width) {
 
 void amplify_heights(double *heights, double width, double a) {
     for (size_t i=0; i < width; i++) {
-        double amp = (30 * pow(a, 3)) / (pow(0.5 * (i - width/2), 2) + 4 * pow(a, 2)) + 1; // peak at 0
+        double amp = (15 * pow(a, 3)) / (pow(0.1 * (i - width/2), 2) + 4 * pow(a, 2)) + 1; // peak at 0
         heights[i] *= amp;
     }
 }
@@ -95,29 +95,30 @@ double *generate_noise(double width, int granularity, double damping, double a) 
 
 
 body_t *generate_terrain(double width, double base_height, double scale, int granularity, double damping, double mass, double a) {
-  double* heights = generate_noise(width, granularity, damping, a);
-  // Going to effectively flip across the Y axis
-  // So I don't have to going through the list in reverse
+    double new_width = width + 10; // Ensures that it is wide enough
+    double* heights = generate_noise(new_width, granularity, damping, a);
+    // Going to effectively flip across the Y axis
+    // So I don't have to going through the list in reverse
 
-  list_t *points = list_init(width + 2, free); // + 2 for the bottom left and right vertices
-  for (size_t i=0; i < width; i++) {
-      vector_t *pt = malloc(sizeof(vector_t));
-      assert(pt != NULL);
+    list_t *points = list_init(new_width + 2, free); // + 2 for the bottom left and right vertices
+    for (size_t i=0; i < new_width; i++) {
+        vector_t *pt = malloc(sizeof(vector_t));
+        assert(pt != NULL);
 
-      *pt = (vector_t) {i, (heights[i] * scale) + base_height};
+        *pt = (vector_t) {i, (heights[i] * scale) + base_height};
 
-      list_add(points, pt);
-  }
-  free(heights);
+        list_add(points, pt);
+    }
+    free(heights);
 
-  vector_t *l_corner = vec_init(0.0, -100.0);
-  vector_t *r_corner = vec_init(width, -100.0);
-  list_add(points, r_corner);
-  list_add(points, l_corner);
+    vector_t *l_corner = vec_init(0.0, -100.0);
+    vector_t *r_corner = vec_init(new_width, -100.0);
+    list_add(points, r_corner);
+    list_add(points, l_corner);
 
 
-  rgb_color_t color = {0.0, 153.0/255.0, 51.0/255.0};
-  body_t* terrain = body_init(points, mass, color);
+    rgb_color_t color = {0.0, 153.0/255.0, 51.0/255.0};
+    body_t* terrain = body_init(points, mass, color);
 
-  return terrain;
+    return terrain;
 }

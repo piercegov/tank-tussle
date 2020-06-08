@@ -8,6 +8,7 @@
 #include <math.h>
 
 const double MIN_DIST = 1.5;
+const double PIIII = 3.141592659;
 
 typedef struct grav_aux {
     double G;
@@ -52,6 +53,10 @@ typedef struct bullet_aux {
     body_t *terrain;
     body_t *body;
 } bullet_aux_t;
+
+typedef struct rotate_aux {
+    body_t *body;
+} rotate_aux_t;
 
 force_t *force_init(force_creator_t forcer, void *aux, list_t *bodies, free_func_t freer) {
     force_t *force = malloc(sizeof(force_t));
@@ -358,7 +363,7 @@ void calc_terrain_follow(terrain_aux_t *aux) {
     // we want to find the distance from the bottom of the tank and terrain_max
     double height_diff = min_y - terrain_max.y;
     if (fabs(height_diff) > 0.01) {
-        body_set_centroid(tank, vec_subtract(center, (vector_t) {0, height_diff}));
+        body_set_centroid(tank, vec_subtract(center, (vector_t) {0, height_diff - 1}));
     }
 
 }
@@ -397,6 +402,8 @@ void create_health_follow(scene_t *scene, body_t *tank) {
         (free_func_t) (free)
     );
 }
+
+// Bullet Stuff
 
 void calc_bullet_destroy(bullet_aux_t *aux) {
     body_t *terrain = aux->terrain;
@@ -438,6 +445,35 @@ void create_bullet_destroy(scene_t *scene, body_t *terrain, body_t *bullet) {
     scene_add_bodies_force_creator(
         scene,
         (force_creator_t) (calc_bullet_destroy),
+        aux,
+        bodies,
+        (free_func_t) (free)
+    );
+}
+
+void calc_bullet_rotate(rotate_aux_t *aux) {
+    body_t *bullet = aux->body;
+
+
+    vector_t velo = body_get_velocity(bullet);
+    double angle;
+    if (velo.x < 0) {
+        angle = (180.0 * atan(velo.y / velo.x) / PIIII) + 180.0;
+    }
+    else {
+        angle = 180.0 * atan(velo.y / velo.x) / PIIII;
+    }
+    body_set_rotation(bullet, angle);
+}
+
+void create_bullet_rotate(scene_t *scene, body_t *bullet) {
+    list_t *bodies = list_init(1, NULL);
+    list_add(bodies, bullet);
+    rotate_aux_t *aux = malloc(sizeof(rotate_aux_t));
+    aux->body = bullet;
+    scene_add_bodies_force_creator(
+        scene,
+        (force_creator_t) (calc_bullet_rotate),
         aux,
         bodies,
         (free_func_t) (free)

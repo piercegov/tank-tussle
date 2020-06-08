@@ -6,6 +6,8 @@
 #include "list.h"
 #include "scene.h"
 #include "vector.h"
+#include <SDL2/SDL_image.h>
+#include "body.h"
 
 // Values passed to a key handler when the given arrow key is pressed
 #define LEFT_ARROW 1
@@ -121,5 +123,7 @@ void sdl_on_key(key_handler_t handler);
  * @return the number of seconds that have elapsed
  */
 double time_since_last_tick(void);
+
+SDL_Texture *sdl_create_sprite_texture(char image[]);
 
 #endif // #ifndef __SDL_WRAPPER_H__

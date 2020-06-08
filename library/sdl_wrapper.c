@@ -5,13 +5,16 @@
 #include <SDL2/SDL.h>
 #include <SDL2/SDL2_gfxPrimitives.h>
 // #include <SDL2/SDL_mixer.h>
-// #include <SDL2/SDL_image.h>
+#include <SDL2/SDL_image.h>
 #include "sdl_wrapper.h"
+// #include <SDL2/SDL_ttf.h>
+#include "body.h"
 
 const char WINDOW_TITLE[] = "CS 3";
 const int WINDOW_WIDTH = 1000;
 const int WINDOW_HEIGHT = 500;
 const double MS_PER_S = 1e3;
+const double PIII = 3.14159265;
 
 // Mix_Chunk *gExplosion = NULL;
 
@@ -114,6 +117,7 @@ void sdl_init(vector_t min, vector_t max) {
     center = vec_multiply(0.5, vec_add(min, max));
     max_diff = vec_subtract(max, center);
     SDL_Init(SDL_INIT_EVERYTHING);
+    IMG_Init(IMG_INIT_PNG);
     // Mix_OpenAudio( 44100, MIX_DEFAULT_FORMAT, 2, 2048 )
 
     window = SDL_CreateWindow(
@@ -142,6 +146,7 @@ bool sdl_is_done(void *ptr) {
         switch (event->type) {
             case SDL_QUIT:
                 free(event);
+                IMG_Quit();
                 return true;
             case SDL_KEYDOWN:
             case SDL_KEYUP:
@@ -224,12 +229,31 @@ void sdl_show(void) {
 
 void sdl_render_scene(scene_t *scene) {
     sdl_clear();
+    SDL_Rect *rcsprite;
     size_t body_count = scene_bodies(scene);
+    vector_t window_center = get_window_center();
     for (size_t i = 0; i < body_count; i++) {
         body_t *body = scene_get_body(scene, i);
         list_t *shape = body_get_shape(body);
         sdl_draw_polygon(shape, body_get_color(body));
         list_free(shape);
+        if (body_get_texture(body) != NULL) {
+            vector_t center = body_get_centroid(body);
+            vector_t pix_center = get_window_position(center, window_center);
+            vector_t size = vec_multiply(-0.5, body_get_texture_size(body));
+            vector_t upper_left = vec_add(pix_center, size);
+
+            SDL_Point *pt = malloc(sizeof(SDL_Point));
+            *pt = (SDL_Point){ (int)pix_center.x, (int)pix_center.y };
+
+            body_set_texture_rect(body, upper_left, body_get_texture_size(body));
+            SDL_RenderCopyEx(renderer, body_get_texture(body), NULL, body_get_texture_rect(body),
+                body_get_rotation(body), pt, SDL_FLIP_NONE);
+
+
+            free(pt);
+
+        }
     }
     sdl_show();
 }
@@ -246,3 +270,14 @@ double time_since_last_tick(void) {
     last_clock = now;
     return difference;
 }
+
+SDL_Texture *sdl_create_sprite_texture(char image[]) {
+    SDL_Surface *sprite = IMG_Load(image);
+    SDL_Texture *sprite_texture = SDL_CreateTextureFromSurface(renderer, sprite);
+    SDL_FreeSurface(sprite);
+    return sprite_texture;
+}
+
+/*void sdl_add_text(char string[], char font[], int font_size, vector_t location, int rect_size) {
+
+}*/

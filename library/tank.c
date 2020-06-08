@@ -14,6 +14,8 @@
 #include "fuel_bar.h"
 
 const double PII = 3.14159265;
+const double TANK_HEIGHT = 2.5;
+const double TANK_WIDTH = 4.0;
 const vector_t POWER_LEFT = {20.0, 10.0};
 const vector_t POWER_RIGHT = {180.0, 10.0};
 const vector_t FUEL_LEFT = {20.0, 5.0};
@@ -21,7 +23,7 @@ const vector_t FUEL_RIGHT = {180.0, 5.0};
 
 // When we add the tank to the scene we also need to make sure that we add its health bar
 body_t *tank_init(double mass, rgb_color_t color, vector_t center, double size, int tank_num) {
-    list_t *points = create_arc(size, 2*PII);
+    list_t *points = create_rectangle(center, TANK_WIDTH, TANK_HEIGHT);
     tank_info_t *info = malloc(sizeof(tank_info_t));
 
     info->angle = 0.0;
@@ -32,7 +34,6 @@ body_t *tank_init(double mass, rgb_color_t color, vector_t center, double size, 
 
     // Health Bar freed in scene free
     body_t *tank = body_init_with_info(points, mass, color, info, free);
-    body_set_centroid(tank, center);
     info->health_bar = health_init(tank);
 
     // POG CHAMP

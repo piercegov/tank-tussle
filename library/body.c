@@ -23,6 +23,9 @@ typedef struct body {
     void *info;
     free_func_t freer;
     bool remove;
+    SDL_Texture *texture;
+    vector_t texture_size;
+    SDL_Rect *texture_rect;
 } body_t;
 
 body_t *body_init(list_t *shape, double mass, rgb_color_t color) {
@@ -32,11 +35,13 @@ body_t *body_init(list_t *shape, double mass, rgb_color_t color) {
 body_t *body_init_with_info(list_t *shape, double mass, rgb_color_t color, void *info, free_func_t info_freer) {
     body_t *body = malloc(sizeof(body_t));
     vector_t *velo = malloc(sizeof(vector_t));
+    SDL_Rect *rect = malloc(sizeof(SDL_Rect));
     assert(body != NULL);
     assert(velo != NULL);
     assert(mass > 0);
 
     body->info = info;
+    body->texture = NULL;
     body->freer = info_freer;
     body->points = shape;
     body->color = color;
@@ -49,6 +54,9 @@ body_t *body_init_with_info(list_t *shape, double mass, rgb_color_t color, void 
     body->elasticity = 1.0;
     body->force = VEC_ZERO;
     body->impulse = VEC_ZERO;
+    body->texture = NULL;
+    body->texture_size = VEC_ZERO;
+    body->texture_rect = rect;
     return body;
 }
 
@@ -58,6 +66,9 @@ void body_free(body_t *body) {
     free_func_t info_free = body->freer;
     if (body->info != NULL && info_free != NULL){
         info_free(body->info);
+    }
+    if (body->texture != NULL) {
+        free(body->texture_rect);
     }
     free(body);
 }
@@ -192,4 +203,28 @@ vector_t body_get_min(body_t *b, double min_x, double max_x) {
         }
     }
     return min;
+}
+
+SDL_Texture *body_get_texture(body_t *b) {
+    return b->texture;
+}
+
+vector_t body_get_texture_size(body_t *b) {
+    return b->texture_size;
+}
+
+void body_set_texture(body_t *b, SDL_Texture *texture, vector_t sprite_size) {
+    b->texture = texture;
+    b->texture_size = sprite_size;
+}
+
+SDL_Rect *body_get_texture_rect(body_t *b) {
+    return b->texture_rect;
+}
+
+void body_set_texture_rect(body_t *b, vector_t upper_left, vector_t dimensions) {
+    b->texture_rect->x = upper_left.x;
+    b->texture_rect->y = upper_left.y;
+    b->texture_rect->w = dimensions.x;
+    b->texture_rect->h = dimensions.y;
 }
