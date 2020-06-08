@@ -9,7 +9,6 @@
 #include "polygon.h"
 
 const double MIN_DIST = 1.5;
-const double PIIII = 3.141592659;
 
 typedef struct grav_aux {
     double G;
@@ -496,7 +495,7 @@ void calc_bullet_rotate(rotate_aux_t *aux) {
     vector_t velo = body_get_velocity(bullet);
     double angle;
     if (velo.x < 0) {
-        angle = atan(velo.y / velo.x) + PIIII;
+        angle = atan(velo.y / velo.x) + PI;
     }
     else {
         angle = atan(velo.y / velo.x);
@@ -526,9 +525,9 @@ void calc_barrel_rotate(barrel_rotate_aux_t *aux) {
     body_set_centroid(barrel, vec_add(body_get_centroid(tank), offset));
     double angle;
     if (tank_get_number(tank) == 1) {
-      angle = PIIII * tank_get_angle(tank) / 180.0;
+      angle = PI * tank_get_angle(tank) / 180.0;
     } else {
-      angle = PIIII * tank_get_angle(tank) / 180.0 * -1.0;
+      angle = PI * tank_get_angle(tank) / 180.0 * -1.0;
     }
 
 

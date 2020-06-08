@@ -22,26 +22,19 @@
 const vector_t MIN = {0.0, 0.0};
 const vector_t MAX = {200.0, 100.0};
 
-const double PI = 3.14159265;
-
 const double TANK_SIZE = 2.0;
 const double SPRITE_SIZE = 30.0;
 const double CLOUD_SIZE = 1.0;
 const size_t NUM_CLOUDS = 8;
 const vector_t CLOUD_SPRITE_SIZE = {128.0, 64.0};
 const vector_t TANK_SPRITE_SIZE = {34.0, 26.0};
-const vector_t BULLET_SPRITE_SIZE = {16.0, 9.0};
 const vector_t BARREL_SIZE = {30.0, 10.0};
 const vector_t TANK_VELO = {50.0, 0};
 const vector_t TANK1_START_POS = {20.0, 50.0};
 const vector_t TANK2_START_POS = {180.0, 50.0};
 
-const rgb_color_t BLACK = {0.0, 0.0, 0.0};
 const double DAMAGE = 25.0; //will need to update how this works with variable bullet types
 const double BULLET_MASS = 1.0;
-const double BULLET_SIZE = 1.0;
-const double G = 9001.0;
-
 const double BASE_POWER = 69.0;
 
 const double BASE_HEIGHT = 30.0;
@@ -50,7 +43,6 @@ const int NUM_TERRAIN_LEVELS = 7;
 const double TERRAIN_DAMPING = 0.5;
 const double TERRAIN_MASS = 10.0;
 const double TERRAIN_AMPLITUDE = 0.8;
-const double FUEL_CONSTANT = 10.0;
 
 const double WIND = 0.0;
 const double WALL_WIDTH = 1.0;
@@ -60,13 +52,10 @@ const double BIG_MASS = 100000000.0;
 const int ANCHOR_OFF = 100000;
 const int ANCHOR_HEIGHT = 10;
 
-const double BAR_WIDTH = 15.0;
-const double BAR_HEIGHT = 2.0;
-
 const int GAME_LEVELS = 2;
 const rgb_color_t LIGHT_BLUE = {173.0 / 255.0, 216.0 / 255.0, 230.0 / 255.0};
 const rgb_color_t LIGHT_GRAY = {211.0 / 255.0, 211.0 / 255.0, 211.0 / 255.0};
-const rgb_color_t GREEEN = {0.0, 153.0/255.0, 51.0/255.0};
+const rgb_color_t TERRAIN_GREEN = {0.0, 153.0/255.0, 51.0/255.0};
 
 typedef struct bullet_info {
     double damage;
@@ -151,8 +140,6 @@ void shoot_bullet(scene_t *scene, double wind, double dmg) {
     }
     create_cluster_bomb(scene, t2, t1, tank_center, velo, wind, dmg);
 }
-
-
 
 bool off_screen_right(body_t *tank) {
     list_t *shape = body_get_shape(tank);
@@ -305,12 +292,11 @@ scene_t *init_new_game(rgb_color_t sky_color) {
     scene_add_body(scene, terrain);
     scene_terrain(scene, terrain);
 
-    SDL_Texture *texture1 = sdl_create_sprite_texture("images/tank_big_blue.png"); //need to import image
-    SDL_Texture *texture2 = sdl_create_sprite_texture("images/tank_big_red.png"); //need to import image
+    SDL_Texture *texture1 = sdl_create_sprite_texture("images/tank_big_blue.png"); 
+    SDL_Texture *texture2 = sdl_create_sprite_texture("images/tank_big_red.png");
 
     SDL_Texture *barrel1 = sdl_create_sprite_texture("images/barrel_blue_big.png");
     SDL_Texture *barrel2 = sdl_create_sprite_texture("images/barrel_blue_red.png");
-
 
     // Initialize the tanks
     vector_t barrel_dim = {3.0, 1.0};
@@ -362,8 +348,8 @@ scene_t *init_new_game(rgb_color_t sky_color) {
     scene_add_body(scene, power_bar2->inner);
     scene_add_body(scene, power_bar2->power_level);
 
-    add_text_bars(scene, vec_add((vector_t) {0.0, BAR_HEIGHT}, body_get_centroid(power_bar1->outer)), (vector_t){ BAR_WIDTH, BAR_HEIGHT }, GREEEN, "PLAYER 1 POWER");
-    add_text_bars(scene, vec_add((vector_t) {0.0, BAR_HEIGHT}, body_get_centroid(power_bar2->outer)), (vector_t){ BAR_WIDTH, BAR_HEIGHT }, GREEEN, "PLAYER 2 POWER");
+    add_text_bars(scene, vec_add((vector_t) {0.0, BAR_HEIGHT}, body_get_centroid(power_bar1->outer)), (vector_t){ BAR_WIDTH, BAR_HEIGHT }, TERRAIN_GREEN, "PLAYER 1 POWER");
+    add_text_bars(scene, vec_add((vector_t) {0.0, BAR_HEIGHT}, body_get_centroid(power_bar2->outer)), (vector_t){ BAR_WIDTH, BAR_HEIGHT }, TERRAIN_GREEN, "PLAYER 2 POWER");
 
     fuel_bar_t *fuel_bar1 = tank_get_fuel_bar(tank1);
     scene_add_body(scene, fuel_bar1->outer);
@@ -373,8 +359,8 @@ scene_t *init_new_game(rgb_color_t sky_color) {
     scene_add_body(scene, fuel_bar2->outer);
     scene_add_body(scene, fuel_bar2->inner);
     scene_add_body(scene, fuel_bar2->fuel_level);
-    add_text_bars(scene, vec_add((vector_t) {0.0, BAR_HEIGHT}, body_get_centroid(fuel_bar1->outer)), (vector_t){ BAR_WIDTH*5, BAR_HEIGHT*5 }, GREEEN, "PLAYER 1 FUEL");
-    add_text_bars(scene, vec_add((vector_t) {0.0, BAR_HEIGHT}, body_get_centroid(fuel_bar2->outer)), (vector_t){ BAR_WIDTH, BAR_HEIGHT }, GREEEN, "PLAYER 2 FUEL");
+    add_text_bars(scene, vec_add((vector_t) {0.0, BAR_HEIGHT}, body_get_centroid(fuel_bar1->outer)), (vector_t){ BAR_WIDTH*5, BAR_HEIGHT*5 }, TERRAIN_GREEN, "PLAYER 1 FUEL");
+    add_text_bars(scene, vec_add((vector_t) {0.0, BAR_HEIGHT}, body_get_centroid(fuel_bar2->outer)), (vector_t){ BAR_WIDTH, BAR_HEIGHT }, TERRAIN_GREEN, "PLAYER 2 FUEL");
 
     add_text_bars(scene, (vector_t) {MAX.x / 2, 7 * MAX.y / 8}, (vector_t) {150.0, 4.0}, sky_color,
         "Move: Left/right || Power: w/s || Angle: Up/down || Shoot: Space bar || Bullet Type: 1 (Normal), 2 (Scatter), 3 (Radius)");
@@ -382,14 +368,14 @@ scene_t *init_new_game(rgb_color_t sky_color) {
     add_texture(tank_get_barrel(tank1), barrel1, BARREL_SIZE);
     add_texture(tank_get_barrel(tank2), barrel2, BARREL_SIZE);
 
-        // Make barrel rotation force
+    // Make barrel rotation force
     create_barrel_rotate(scene, tank1, barrel_dim);
     create_barrel_rotate(scene, tank2, (vector_t) {barrel_dim.x * -1.0, barrel_dim.y});
 
     return scene;
 }
 
-rgb_color_t make_sky_color(void) {
+rgb_color_t make_sky_color() {
     rgb_color_t sky_color;
     int rand_num = rand() % 10;
     if (rand_num > 4) {

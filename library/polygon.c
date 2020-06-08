@@ -7,6 +7,7 @@
 
 const double SIX = 6;
 const double CIRC_DENSITY = 40.0;
+const double PI = 3.14159265;
 
 list_t *create_rectangle(vector_t c, double w, double h) {
     list_t *bar = list_init(4, (free_func_t) free);

@@ -4,6 +4,8 @@
 #include "list.h"
 #include "vector.h"
 
+extern const double PI;
+
 /**
  * Computes the area of a polygon.
  * See https://en.wikipedia.org/wiki/Shoelace_formula#Statement.

@@ -9,7 +9,14 @@
 #include <stdbool.h>
 #include "fuel_bar.h"
 
-typedef struct tank tank_t;
+extern const rgb_color_t BLACK;
+extern const rgb_color_t RED;
+extern const rgb_color_t GREEN;
+extern const rgb_color_t BLUE;
+extern const rgb_color_t WHITE;
+extern const double BAR_WIDTH;
+extern const double BAR_HEIGHT;
+extern const double OUTLINE_WIDTH;
 
 typedef struct tank_info {
     health_bar_t *health_bar;

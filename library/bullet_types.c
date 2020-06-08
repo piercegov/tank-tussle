@@ -7,15 +7,12 @@
 #include "polygon.h"
 #include "math.h"
 
-// const double BASE_POWER = 10.0;
 const vector_t BULLET_SPRITE_SIZE = {16.0, 9.0};
 const double CLUSTER_OFF = 5.0;
-const double PIIIII = 3.14159265;
 const double CLUSTER_VELO = 20.0;
-const double G = 690.0;
-const rgb_color_t BLACKKKKK = {0.0, 0.0, 0.0};
+const double G = 9001.0;
 const double BULLET_SIZE = 1.0;
-const double NEW_FUEL = 10.0;
+const double FUEL_CONSTANT = 10.0;
 
 typedef struct cluster_aux {
     scene_t *scene;
@@ -38,7 +35,7 @@ void add_bullet_texture(body_t *b, SDL_Texture *texture, vector_t sprite_size) {
 void calc_cluster_bomb_collision(body_t *body1, body_t *bullet, vector_t axis, cluster_aux_t *aux) {
     int num_clusters = aux->num_clusters;
     scene_t *scene = aux->scene;
-    double rads_per = 2 * PIIIII / num_clusters;
+    double rads_per = 2 * PI / num_clusters;
     for (size_t i = 0; i < num_clusters; i++) {
         printf("%f\n", cos(i * rads_per));
         vector_t velo = vec_multiply(CLUSTER_VELO, (vector_t) {cos(i * rads_per), sin(i*rads_per)});
@@ -65,11 +62,11 @@ void create_cluster_bomb_collision(scene_t *scene, body_t *t1, body_t *t2, body_
 
 void change_turn(body_t *cur_tank, body_t *next_tank) {
     double current_fuel = tank_get_fuel(next_tank);
-    if (current_fuel + NEW_FUEL > 100) {
+    if (current_fuel + FUEL_CONSTANT > 100) {
         tank_set_fuel(next_tank, 100.0);
     }
     else {
-        tank_set_fuel(next_tank, current_fuel + NEW_FUEL);
+        tank_set_fuel(next_tank, current_fuel + FUEL_CONSTANT);
     }
     tank_set_turn(next_tank, true);
     update_fuel_bar(next_tank);
@@ -78,10 +75,10 @@ void change_turn(body_t *cur_tank, body_t *next_tank) {
 
 body_t *init_gen_bullet(scene_t *scene, body_t *t1, body_t *t2, vector_t pos, vector_t velo,
         double wind, double dmg) {
-    list_t *points = create_arc(BULLET_SIZE, 2*PIIIII);
+    list_t *points = create_arc(BULLET_SIZE, 2*PI);
     kinetic_bullet_aux_t *bullet_aux = malloc(sizeof(kinetic_bullet_aux_t));
     bullet_aux->damage = dmg;
-    body_t *bullet = body_init_with_info(points, 1.0, BLACKKKKK, (void *) bullet_aux, free);
+    body_t *bullet = body_init_with_info(points, 1.0, BLACK, (void *) bullet_aux, free);
     body_set_type(bullet, 1);
     // vector_t tank_center = body_get_centroid(t1);
     // body_set_centroid(bullet, tank_center);

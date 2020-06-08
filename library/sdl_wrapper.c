@@ -15,9 +15,6 @@ const char WINDOW_TITLE[] = "CS 3";
 const int WINDOW_WIDTH = 1000;
 const int WINDOW_HEIGHT = 500;
 const double MS_PER_S = 1e3;
-const double PIII = 3.14159265;
-
-// Mix_Chunk *gExplosion = NULL;
 
 /**
  * The coordinate at the center of the screen.
@@ -245,7 +242,7 @@ void sdl_render_scene(scene_t *scene) {
             vector_t size = vec_multiply(-0.5, body_get_texture_size(body));
             vector_t upper_left = vec_add(pix_center, size);
 
-            double angle = 180 * body_get_rotation(body) / PIII;
+            double angle = 180 * body_get_rotation(body) / M_PI;
 
             body_set_texture_rect(body, upper_left, body_get_texture_size(body));
             SDL_RenderCopyEx(renderer, body_get_texture(body), NULL, body_get_texture_rect(body),

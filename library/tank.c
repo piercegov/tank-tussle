@@ -12,17 +12,24 @@
 #include "render_health.h"
 #include "power_bar.h"
 #include "fuel_bar.h"
+#include "color.h"
 
-const double PII = 3.14159265;
 const double TANK_HEIGHT = 2.5;
 const double TANK_WIDTH = 4.5;
 const double BARREL_LENGTH = 3.0;
 const double BARREL_HEIGHT = 1.0;
-// const vector_t BARREL_OFFSET = {2.0, 0.0};
 const vector_t POWER_LEFT = {20.0, 15.0};
 const vector_t POWER_RIGHT = {180.0, 15.0};
 const vector_t FUEL_LEFT = {20.0, 5.0};
 const vector_t FUEL_RIGHT = {180.0, 5.0};
+const rgb_color_t BLACK = {0.0, 0.0, 0.0};
+const rgb_color_t RED = {1.0, 0.0, 0.0};
+const rgb_color_t GREEN = {0.0, 1.0, 0.0};
+const rgb_color_t BLUE = {0.0, 0.0, 1.0};
+const rgb_color_t WHITE = {1.0, 1.0, 1.0};
+const double BAR_WIDTH = 15.0;
+const double BAR_HEIGHT = 2.0;
+const double OUTLINE_WIDTH = 0.5;
 
 list_t *tank_hitbox(vector_t c, double w, double h) {
     list_t *points = create_rectangle(c, w, h);
