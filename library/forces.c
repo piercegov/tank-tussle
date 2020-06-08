@@ -37,8 +37,8 @@ typedef struct collision_aux {
 } collision_aux_t;
 
 typedef struct collision_terrain_aux {
-    body_t *body1;
-    body_t *body2;
+    body_t *terrain;
+    body_t *body;
     void *aux;
     bool has_collided;
     collision_handler_t handler;
@@ -444,10 +444,11 @@ void calc_collision_with_terrain(collision_terrain_aux_t *aux){
     collision_handler_t handler = aux->handler;
     body_t *body1 = aux->terrain;
     body_t *body2 = aux->body;
-    if (is_colliding(body1, body2) && !aux->has_collided) {
-        handler(body1, body2, info.axis, aux->aux);
+    bool colliding = is_colliding(body1, body2);
+    if (colliding && !aux->has_collided) {
+        handler(body1, body2, VEC_ZERO, aux->aux);
         aux->has_collided = true;
-    } else if (!info.collided) {
+    } else if (!colliding) {
         aux->has_collided = false;
     }
 
@@ -459,21 +460,22 @@ void create_terrain_collision(scene_t *scene, body_t *terrain, body_t *bullet, c
     list_t *bodies = list_init(2, NULL);
     list_add(bodies, terrain);
     list_add(bodies, bullet);
-    collision_terrain_aux_t *aux = malloc(sizeof(collision_terrain_aux_t));
-    aux->terrain = terrain;
-    aux->body = bullet;
-    aux->handler = handler;
-    aux->freeer = freer;
+    collision_terrain_aux_t *aux1 = malloc(sizeof(collision_terrain_aux_t));
+    aux1->terrain = terrain;
+    aux1->body = bullet;
+    aux1->handler = handler;
+    aux1->freer = freer;
+    aux1->aux = aux;
     scene_add_bodies_force_creator(
         scene,
         (force_creator_t) (calc_collision_with_terrain),
-        aux,
+        aux1,
         bodies,
         (free_func_t) (freer)
     );
 }
 
-void calc_bullet_terrain_destroy(body_t body1, body_t *body2, vector_t axis, bullet_aux_t *aux) {
+void calc_bullet_terrain_destroy(body_t *body1, body_t *body2, vector_t axis, bullet_aux_t *aux) {
     body_remove(body2);
 }
 

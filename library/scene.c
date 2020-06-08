@@ -19,6 +19,49 @@ typedef struct scene {
     body_t *anchor;
 } scene_t;
 
+void scene_anchor(scene_t *scene, body_t *anchor) {
+    scene->anchor = anchor;
+}
+
+void scene_walls(scene_t *scene, body_t *left_wall, body_t *right_wall) {
+    scene->left_wall = left_wall;
+    scene->right_wall = right_wall;
+}
+
+void scene_terrain(scene_t *scene, body_t *terrain) {
+    scene->terrain= terrain;
+}
+
+void scene_tanks(scene_t *scene, body_t *t1, body_t *t2) {
+    scene->tank1 = t1;
+    scene->tank2 = t2;
+}
+
+body_t *scene_get_anchor(scene_t *scene) {
+    return scene->anchor;
+}
+
+body_t *scene_get_left(scene_t *scene) {
+    return scene->left_wall;
+}
+
+body_t *scene_get_right(scene_t *scene) {
+    return scene->right_wall;
+}
+
+body_t *scene_get_terrain(scene_t *scene) {
+    return scene->terrain;
+}
+
+body_t *scene_get_tank1(scene_t *scene) {
+    return scene->tank1;
+}
+
+body_t *scene_get_tank2(scene_t *scene) {
+    return scene->tank2;
+}
+
+
 scene_t *scene_init() {
     scene_t *scene = malloc(sizeof(scene_t));
     list_t *bodies = list_init(INIT_BODIES, (free_func_t) body_free);

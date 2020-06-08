@@ -11,6 +11,17 @@
  */
 typedef struct scene scene_t;
 
+void scene_anchor(scene_t *scene, body_t *anchor);
+void scene_walls(scene_t *scene, body_t *left_wall, body_t *right_wall);
+void scene_terrain(scene_t *scene, body_t *terrain);
+void scene_tanks(scene_t *scene, body_t *t1, body_t *t2);
+body_t *scene_get_anchor(scene_t *scene);
+body_t *scene_get_left(scene_t *scene);
+body_t *scene_get_right(scene_t *scene);
+body_t *scene_get_terrain(scene_t *scene);
+body_t *scene_get_tank1(scene_t *scene);
+body_t *scene_get_tank2(scene_t *scene);
+
 /**
  * A function which adds some forces or impulses to bodies,
  * e.g. from collisions, gravity, or spring forces.

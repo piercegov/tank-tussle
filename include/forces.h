@@ -151,6 +151,8 @@ void create_terrain_follow(scene_t *scene, body_t *terrain, body_t *tank);
 
 void create_health_follow(scene_t *scene, body_t *tank);
 
+void create_terrain_collision(scene_t *scene, body_t *terrain, body_t *bullet, collision_handler_t handler, void *aux, free_func_t freer);
+
 void create_bullet_destroy(scene_t *scene, body_t *terrain, body_t *bullet);
 
 void create_bullet_rotate(scene_t *scene, body_t *bullet);

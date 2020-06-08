@@ -14,6 +14,7 @@
 #include <stdbool.h>
 #include <assert.h>
 #include "power_bar.h"
+#include "bullet_types.h"
 #include "fuel_bar.h"
 
 // Cartesian Coordinates (not pixel values)
@@ -28,7 +29,7 @@ const double CLOUD_SIZE = 1.0;
 const size_t NUM_CLOUDS = 8;
 const vector_t CLOUD_SPRITE_SIZE = {128.0, 64.0};
 const vector_t TANK_SPRITE_SIZE = {34.0, 26.0};
-const vector_t BULLET_SPRITE_SIZE = {16.0, 9.0};
+
 const vector_t TANK_VELO = {100.0, 0};
 const vector_t TANK1_START_POS = {20.0, 50.0};
 const vector_t TANK2_START_POS = {180.0, 50.0};
@@ -36,9 +37,9 @@ const vector_t TANK2_START_POS = {180.0, 50.0};
 const rgb_color_t BLACK = {0.0, 0.0, 0.0};
 const double DAMAGE = 25.0; //will need to update how this works with variable bullet types
 const double BULLET_MASS = 1.0;
-const double BULLET_SIZE = 1.0;
-const double G = 690.0;
-const double DAMAGE = 25.0;
+
+
+const double BASE_POWER = 20.0;
 
 
 
@@ -49,7 +50,7 @@ const double TERRAIN_DAMPING = 0.5;
 const double TERRAIN_MASS = 10.0;
 const double TERRAIN_AMPLITUDE = 0.8;
 const double FUEL_CONSTANT = 10.0;
-const double NEW_FUEL = 10.0;
+
 const double WIND = 0.0;
 const double WALL_WIDTH = 1.0;
 const vector_t TEXT_SIZE = { 150.0, 50.0 };
@@ -101,6 +102,7 @@ void add_walls(scene_t *scene) {
     polygon_rotate(rect, PI / 2, VEC_ZERO);
     bottom_wall = body_init(rect, INFINITY, BLACK);
     scene_add_body(scene, bottom_wall);
+    scene_walls(scene, left_wall, right_wall);
 }
 
 void add_texture(body_t *b, SDL_Texture *texture, vector_t sprite_size) {
@@ -124,6 +126,36 @@ void render_tank(body_t *tank, double angle, double power, vector_t velocity, do
     else if (tank_get_fuel(tank) <= 0) {
         body_set_velocity(tank, VEC_ZERO);
     }
+}
+
+void shoot_bullet(scene_t *scene, double wind, double dmg) {
+    vector_t tank_center;
+    body_t *t1;
+    body_t *t2;
+    if (tank_get_turn(tank1)) {
+        t1 = tank1;
+        t2 = tank2;
+        tank_center = body_get_centroid(tank1);
+    } else {
+        t2 = tank1;
+        t1 = tank2;
+        tank_center = body_get_centroid(tank2);
+    }
+
+    double angle = tank_get_angle(t1);
+    angle = (angle * PI) / 180.0;
+    double x_dir = cos(angle);
+    double y_dir = sin(angle);
+
+    double power = tank_get_power(t1);
+    power = power + BASE_POWER;
+    vector_t velo = vec_multiply(power, (vector_t) {x_dir, y_dir});
+
+    int type = tank_get_number(t1);
+    if (type == 2) {
+        velo.x = velo.x * -1;
+    }
+    create_cluster_bomb(scene, t2, t1, tank_center, velo, wind, dmg);
 }
 
 
@@ -211,8 +243,7 @@ void shooter_key_handler(char key, key_event_type_t type, double held_time, scen
                     break;
 
                 case SPACE_BAR:
-                    create_kinetic_bullet(scene, tank, )
-                    shoot_bullet(scene, tank1, tank2, anchor, left_wall, rigth_wall, WIND, BULLET_DAMAGE);
+                    shoot_bullet(scene, WIND, DAMAGE);
             }
         }
 
@@ -295,6 +326,7 @@ scene_t *init_new_game(int rand_num) {
 
     terrain = generate_terrain(MAX.x, BASE_HEIGHT, TERRAIN_SCALE, NUM_TERRAIN_LEVELS, TERRAIN_DAMPING, TERRAIN_MASS, TERRAIN_AMPLITUDE);
     scene_add_body(scene, terrain);
+    scene_terrain(scene, terrain);
 
     SDL_Texture *texture1 = sdl_create_sprite_texture("images/tank_big_blue.png"); //need to import image
     SDL_Texture *texture2 = sdl_create_sprite_texture("images/tank_big_red.png"); //need to import image
@@ -303,6 +335,7 @@ scene_t *init_new_game(int rand_num) {
     scene_add_body(scene,tank1);
     tank2 = tank_init(1.0, (rgb_color_t){0.0, 0.5, 0.5}, TANK2_START_POS, TANK_SIZE, 2);
     scene_add_body(scene,tank2);
+    scene_tanks(scene, tank1, tank2);
 
     add_texture(tank1, texture1, TANK_SPRITE_SIZE);
     add_texture(tank2, texture2, TANK_SPRITE_SIZE);
@@ -319,6 +352,7 @@ scene_t *init_new_game(int rand_num) {
 
     anchor = make_ground();
     scene_add_body(scene, anchor);
+    scene_anchor(scene, anchor);
 
     health_bar_t *health_bar1 = tank_get_health_bar(tank1);
     scene_add_body(scene, health_bar1->outer);
