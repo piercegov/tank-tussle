@@ -47,18 +47,23 @@ const int NUM_TERRAIN_LEVELS = 7;
 const double TERRAIN_DAMPING = 0.5;
 const double TERRAIN_MASS = 10.0;
 const double TERRAIN_AMPLITUDE = 0.8;
-const double FUEL_CONSTANT = 2.0;
+const double FUEL_CONSTANT = 10.0;
 const double NEW_FUEL = 10.0;
 const double WIND = 0.0;
 const double WALL_WIDTH = 1.0;
+const vector_t TEXT_SIZE = { 150.0, 50.0 };
 
 const double BIG_MASS = 100000000.0;
 const int ANCHOR_OFF = 100000;
 const int ANCHOR_HEIGHT = 10;
 
+const double BAR_WIDTH = 15.0;
+const double BAR_HEIGHT = 2.0;
+
 const int GAME_LEVELS = 2;
 const rgb_color_t LIGHT_BLUE = {173.0 / 255.0, 216.0 / 255.0, 230.0 / 255.0};
 const rgb_color_t LIGHT_GRAY = {211.0 / 255.0, 211.0 / 255.0, 211.0 / 255.0};
+const rgb_color_t GREEEN = {0.0, 153.0/255.0, 51.0/255.0};
 
 typedef struct bullet_info {
     double damage;
@@ -125,6 +130,7 @@ void shoot_bullet(scene_t *scene, body_t *tank, double wind) {
     bullet_info_t *bullet_aux = malloc(sizeof(bullet_info_t));
     bullet_aux->damage = DAMAGE;
     body_t *bullet = body_init_with_info(points, BULLET_MASS, BLACK, (void *) bullet_aux, free);
+    body_set_type(bullet, 1);
     vector_t tank_center = body_get_centroid(tank);
     body_set_centroid(bullet, tank_center);
 
@@ -150,6 +156,8 @@ void shoot_bullet(scene_t *scene, body_t *tank, double wind) {
     add_texture(bullet, bullet_text, BULLET_SPRITE_SIZE);
     scene_add_body(scene, bullet);
     create_newtonian_gravity(scene, G, bullet, anchor);
+    create_oneway_destructive_collision(scene, left_wall, bullet);
+    create_oneway_destructive_collision(scene, right_wall, bullet);
 
     create_bullet_rotate(scene, bullet);
     create_drag(scene, wind, bullet);
@@ -199,11 +207,8 @@ bool off_screen_left(body_t *tank) {
 
 void shooter_key_handler(char key, key_event_type_t type, double held_time, scene_t *scene) {
     body_t *tank = tank_turn(scene, tank1, tank2);
-    // body_t *last = scene_get_body(scene, (scene_bodies(scene) - 1);
-    // if (body_get_info) {
-    //
-    // }
-    // else {
+    body_t *last = scene_get_body(scene, (scene_bodies(scene) - 1));
+    if (body_get_type(last) == 0) {
         if (type == KEY_PRESSED) {
             switch (key) {
                 case LEFT_ARROW:
@@ -268,7 +273,7 @@ void shooter_key_handler(char key, key_event_type_t type, double held_time, scen
         else if (type == KEY_RELEASED) {
             render_tank(tank, 0.0, 0.0, (vector_t){ 0 , 0 }, held_time);
         }
-    // }
+    }
 }
 
 body_t *make_sky(rgb_color_t sky_color) {
@@ -303,22 +308,42 @@ void make_clouds(scene_t *scene) {
     for (size_t i = 0; i < NUM_CLOUDS; i++) {
         list_t *pts = create_arc(2 * PI, CLOUD_SIZE);
         body_t *b = body_init(pts, 1, BLACK);
-        body_set_centroid(b, (vector_t){ 20 * (i), (double)(rand() % ((int)MAX.y / 2)) + (double)(MAX.y / 2) });
+        body_set_centroid(b, (vector_t){ 25 * (i), (double)(rand() % ((int)MAX.y / 2)) + (double)(MAX.y / 2) });
         SDL_Texture *texture = sdl_create_sprite_texture("images/cloud.png");
         add_texture(b, texture, CLOUD_SPRITE_SIZE);
         scene_add_body(scene, b);
     }
 }
 
+void add_text_bars(scene_t *scene, vector_t center, vector_t dimensions, rgb_color_t color, char message[]) {
+    list_t *rect = create_rectangle(center, dimensions.x, dimensions.y);
+    body_t *b = body_init(rect, 1.0, color);
+    body_set_centroid(b, center);
+    SDL_Texture *mess = sdl_create_text(message, "fonts/lordcorps.ttf", 24);
+    add_texture(b, mess, dimensions);
+    scene_add_body(scene, b);
+}
+//
+// void add_instructions(scene_t *scene) {
+//     SDL_Texture *message = sdl_create_text("Instructions:\n Left and Right arrow keys to move\n W and S to increase and decrease shot power\n Space to shoot", "fonts/lordcorps.ttf", 120);
+//     list_t *rect = create_rectangle((vector_t) {MAX.x / 2, 3 * MAX.y / 4}, 100.0, 100.0);
+//     body_t *body = body_init(rect, 1.0, WHITE);
+//     add_texture(sky, message, TEXT_SIZE);
+//     scene_add_body(scene, body);
+// }
+
 scene_t *init_new_game(int rand_num) {
     scene_t *scene = scene_init();
     body_t *sky;
 
+    rgb_color_t sky_color;
     if (rand_num > 4) {
         sky = make_sky(LIGHT_GRAY);
+        sky_color = LIGHT_GRAY;
     }
     else {
         sky = make_sky(LIGHT_BLUE);
+        sky_color = LIGHT_BLUE;
     }
     scene_add_body(scene, sky);
 
@@ -343,10 +368,8 @@ scene_t *init_new_game(int rand_num) {
     add_walls(scene);
     create_physics_collision(scene, 0.001, tank1, left_wall);
     create_physics_collision(scene, 0.001, tank1, right_wall);
-    // // create_oneway_destructive_collision(scene, scene_get_body(scene, 6), tank1);
     create_physics_collision(scene, 0.001, tank2, left_wall);
     create_physics_collision(scene, 0.001, tank2, right_wall);
-    // create_oneway_destructive_collision(scene, scene_get_body(scene, 6), tank2);
 
     anchor = make_ground();
     scene_add_body(scene, anchor);
@@ -370,6 +393,8 @@ scene_t *init_new_game(int rand_num) {
     scene_add_body(scene, power_bar2->outer);
     scene_add_body(scene, power_bar2->inner);
     scene_add_body(scene, power_bar2->power_level);
+    add_text_bars(scene, vec_add((vector_t) {0.0, BAR_HEIGHT}, body_get_centroid(power_bar1->outer)), (vector_t){ BAR_WIDTH, BAR_HEIGHT }, GREEEN, "PLAYER 1 POWER");
+    add_text_bars(scene, vec_add((vector_t) {0.0, BAR_HEIGHT}, body_get_centroid(power_bar2->outer)), (vector_t){ BAR_WIDTH, BAR_HEIGHT }, GREEEN, "PLAYER 2 POWER");
 
     fuel_bar_t *fuel_bar1 = tank_get_fuel_bar(tank1);
     scene_add_body(scene, fuel_bar1->outer);
@@ -379,6 +404,8 @@ scene_t *init_new_game(int rand_num) {
     scene_add_body(scene, fuel_bar2->outer);
     scene_add_body(scene, fuel_bar2->inner);
     scene_add_body(scene, fuel_bar2->fuel_level);
+    add_text_bars(scene, vec_add((vector_t) {0.0, BAR_HEIGHT}, body_get_centroid(fuel_bar1->outer)), (vector_t){ BAR_WIDTH, BAR_HEIGHT }, GREEEN, "PLAYER 1 FUEL");
+    add_text_bars(scene, vec_add((vector_t) {0.0, BAR_HEIGHT}, body_get_centroid(fuel_bar2->outer)), (vector_t){ BAR_WIDTH, BAR_HEIGHT }, GREEEN, "PLAYER 2 FUEL");
 
     return scene;
 }

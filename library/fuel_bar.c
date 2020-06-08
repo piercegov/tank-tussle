@@ -33,11 +33,6 @@ void update_fuel_bar(body_t *t1) {
     }
 
     double new_width = (FUEL_WIDTH - OUTLINE_WIDTHHH) * (double) fuel / 100.0;
-    // hb->outer = create_bar(vec_add(center, FUEL_OFFSET), FUEL_WIDTH, FUEL_HEIGHT, BLACKK);
-    // hb->inner = create_bar(vec_add(center, FUEL_OFFSET), FUEL_WIDTH - OUTLINE_WIDTH, FUEL_HEIGHT - OUTLINE_WIDTH, RED);
-    // body_set_centroid(pb->inner, vec_add(center, FUEL_OFFSET));
-    // body_set_centroid(pb->outer, vec_add(center, FUEL_OFFSET));
-    // body_set_centroid(hb->health_pool, vec_add(center, FUEL_OFFSET));
 
     list_t *old_points = body_get_points(pb->fuel_level);
     vector_t pool_offset = (vector_t){(FUEL_WIDTH - new_width) / 2.0, 0};

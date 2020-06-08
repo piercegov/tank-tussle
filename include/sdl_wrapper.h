@@ -126,4 +126,6 @@ double time_since_last_tick(void);
 
 SDL_Texture *sdl_create_sprite_texture(char image[]);
 
+SDL_Texture *sdl_create_text(char string[], char font[], int font_size);
+
 #endif // #ifndef __SDL_WRAPPER_H__

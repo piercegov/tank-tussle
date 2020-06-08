@@ -9,6 +9,7 @@
 #include "sdl_wrapper.h"
 // #include <SDL2/SDL_ttf.h>
 #include "body.h"
+#include <SDL2/SDL_ttf.h>
 
 const char WINDOW_TITLE[] = "CS 3";
 const int WINDOW_WIDTH = 1000;
@@ -118,6 +119,7 @@ void sdl_init(vector_t min, vector_t max) {
     max_diff = vec_subtract(max, center);
     SDL_Init(SDL_INIT_EVERYTHING);
     IMG_Init(IMG_INIT_PNG);
+    TTF_Init();
     // Mix_OpenAudio( 44100, MIX_DEFAULT_FORMAT, 2, 2048 )
 
     window = SDL_CreateWindow(
@@ -147,6 +149,7 @@ bool sdl_is_done(void *ptr) {
             case SDL_QUIT:
                 free(event);
                 IMG_Quit();
+                TTF_Quit();
                 return true;
             case SDL_KEYDOWN:
             case SDL_KEYUP:
@@ -229,7 +232,6 @@ void sdl_show(void) {
 
 void sdl_render_scene(scene_t *scene) {
     sdl_clear();
-    SDL_Rect *rcsprite;
     size_t body_count = scene_bodies(scene);
     vector_t window_center = get_window_center();
     for (size_t i = 0; i < body_count; i++) {
@@ -248,11 +250,10 @@ void sdl_render_scene(scene_t *scene) {
 
             body_set_texture_rect(body, upper_left, body_get_texture_size(body));
             SDL_RenderCopyEx(renderer, body_get_texture(body), NULL, body_get_texture_rect(body),
-                body_get_rotation(body), pt, SDL_FLIP_NONE);
+                -1*body_get_rotation(body), NULL, SDL_FLIP_NONE);
 
 
             free(pt);
-
         }
     }
     sdl_show();
@@ -278,6 +279,12 @@ SDL_Texture *sdl_create_sprite_texture(char image[]) {
     return sprite_texture;
 }
 
-/*void sdl_add_text(char string[], char font[], int font_size, vector_t location, int rect_size) {
+SDL_Texture *sdl_create_text(char string[], char font[], int font_size) {
+    TTF_Font *font_type = TTF_OpenFont(font, font_size);
+    SDL_Color black = {0, 0, 0};
+    SDL_Surface *surface_message = TTF_RenderText_Solid(font_type, string, black);
+    SDL_Texture *message = SDL_CreateTextureFromSurface(renderer, surface_message);
+    SDL_FreeSurface(surface_message);
 
-}*/
+    return message;
+}

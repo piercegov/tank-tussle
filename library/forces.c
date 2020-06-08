@@ -274,11 +274,6 @@ void calc_oneway_destructive_collision(body_t *body1, body_t *body2, vector_t ax
 void calc_damaging_collision(body_t *body1, body_t *body2, vector_t axis, void *aux) {
     double damage = *(double *)body_get_info(body2);
     tank_decrease_health(body1, damage);
-
-    // if (tank_is_dead(body1)){
-    //     body_remove(body1);
-    // }
-
     body_remove(body2);
 }
 

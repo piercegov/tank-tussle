@@ -106,7 +106,7 @@ void tank_set_power(body_t *tank, double new_power) {
 void tank_set_fuel(body_t *tank, double new_fuel) {
     tank_info_t *info = tank_get_info(tank);
     info->fuel = new_fuel;
-    // update_fuel_bar(tank);
+    update_fuel_bar(tank);
 }
 
 void tank_set_angle(body_t *tank, double new_angle) {

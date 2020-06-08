@@ -21,6 +21,7 @@ typedef struct body {
     vector_t force;
     vector_t impulse;
     void *info;
+    int type;
     free_func_t freer;
     bool remove;
     SDL_Texture *texture;
@@ -41,6 +42,7 @@ body_t *body_init_with_info(list_t *shape, double mass, rgb_color_t color, void 
     assert(mass > 0);
 
     body->info = info;
+    body->type = 0;
     body->texture = NULL;
     body->freer = info_freer;
     body->points = shape;
@@ -227,4 +229,12 @@ void body_set_texture_rect(body_t *b, vector_t upper_left, vector_t dimensions) 
     b->texture_rect->y = upper_left.y;
     b->texture_rect->w = dimensions.x;
     b->texture_rect->h = dimensions.y;
+}
+
+int body_get_type(body_t *b) {
+    return b->type;
+}
+
+void body_set_type(body_t *b, int type) {
+    b->type = type;
 }

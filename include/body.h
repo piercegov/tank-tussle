@@ -224,6 +224,10 @@ void body_set_texture(body_t *b, SDL_Texture *texture, vector_t sprite_size);
 
 SDL_Rect *body_get_texture_rect(body_t *b);
 
+void body_set_type(body_t *b, int type);
+
+int body_get_type(body_t *b);
+
 void body_set_texture_rect(body_t *b, vector_t upper_left, vector_t dimensions);
 
 #endif // #ifndef __BODY_H__
