@@ -12,7 +12,7 @@ const double CLUSTER_OFF = 5.0;
 const double CLUSTER_VELO = 20.0;
 const double G = 9001.0;
 const double BULLET_SIZE = 1.0;
-
+const double FUEL_CONSTANT = 10.0;
 
 typedef struct cluster_aux {
     scene_t *scene;
@@ -79,22 +79,12 @@ body_t *init_gen_bullet(scene_t *scene, body_t *t1, body_t *t2, vector_t pos, ve
     bullet_aux->damage = dmg;
     body_t *bullet = body_init_with_info(points, 1.0, BLACK, (void *) bullet_aux, free);
     body_set_type(bullet, 1);
-    // vector_t tank_center = body_get_centroid(t1);
-    // body_set_centroid(bullet, tank_center);
     body_set_centroid(bullet, pos);
-
-    // double angle = tank_get_angle(t1);
-    // angle = (angle * PI) / 180.0;
-    // double x_dir = cos(angle);
-    // double y_dir = sin(angle);
-    //
-    // double power = tank_get_power(tank);
-    // power = power + BASE_POWER;
-    // vector_t velo = vec_multiply(power, (vector_t) {x_dir, y_dir});
-
     body_set_velocity(bullet, velo);
+
     SDL_Texture *bullet_text = sdl_create_sprite_texture("images/bullet.png");
     add_bullet_texture(bullet, bullet_text, BULLET_SPRITE_SIZE);
+    
     scene_add_body(scene, bullet);
     create_oneway_destructive_collision(scene, scene_get_left(scene), bullet);
     create_oneway_destructive_collision(scene, scene_get_right(scene), bullet);
@@ -119,5 +109,4 @@ void create_cluster_bomb(scene_t *scene, body_t *t1, body_t *t2, vector_t pos, v
     body_t *bullet = init_gen_bullet(scene, t1, t2, pos, velo, wind, dmg);
     create_cluster_bomb_collision(scene, t1, t2, bullet, 70, 10.0, 0.0);
     create_newtonian_gravity(scene, G, bullet, scene_get_anchor(scene));
-
 }

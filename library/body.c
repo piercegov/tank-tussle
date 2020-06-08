@@ -110,12 +110,24 @@ vector_t body_get_centroid(body_t *body) {
     return body->centroid;
 }
 
+void body_set_color(body_t *body, rgb_color_t color) {
+    body->color = color;
+}
+
 vector_t body_get_velocity(body_t *body) {
     return *(body->velocity);
 }
 
 rgb_color_t body_get_color(body_t *body) {
     return body->color;
+}
+
+void body_set_rotation_relative(body_t *body, double angle, vector_t point) {
+    list_t *pts = body_get_points(body);
+    double angle_difference = angle - body->rotation;
+    polygon_rotate(pts, angle_difference, point);
+    body->rotation = angle;
+    body_set_centroid(body, polygon_centroid(pts));
 }
 
 void body_set_centroid(body_t *body, vector_t x) {
@@ -139,35 +151,6 @@ void body_set_rotation(body_t *body, double angle) {
     double angle_difference = angle - body->rotation;
     polygon_rotate(body_get_points(body), angle_difference, body_get_centroid(body));
     body->rotation = angle;
-}
-
-void body_set_rotation2(body_t *body, double angle, vector_t point) {
-    list_t *pts = body_get_points(body);
-    double angle_difference = angle - body->rotation;
-    // polygon_translate(pts, point);
-    // body_set_rotation(body, angle);
-    //polygon_translate(body_get_points(body), vec_multiply(-1, point));
-
-    polygon_rotate(pts, angle_difference, point);
-    body->rotation = angle;
-    body_set_centroid(body, polygon_centroid(pts));
-}
-
-void body_set_rotation3(body_t *body, double angle, vector_t point, double length) {
-    list_t *pts = body_get_points(body);
-    vector_t *v = list_get(pts, 0);
-    double liney = v->y;
-    double linex = v->x;
-
-    *v = vec_subtract(*v, body_get_centroid(body));
-    *v = vec_add(body_get_centroid(body), vec_rotate(*v, angle - body->rotation));
-
-    double y = v->y - liney;
-    double angle_difference = sin(y / length);
-
-    *v = (vector_t){linex, liney};
-    polygon_rotate(body_get_points(body), angle_difference, point);
-    body->rotation += angle_difference;
 }
 
 void body_add_force(body_t *body, vector_t force) {

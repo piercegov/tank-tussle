@@ -530,9 +530,7 @@ void calc_barrel_rotate(barrel_rotate_aux_t *aux) {
       angle = PI * tank_get_angle(tank) / 180.0 * -1.0;
     }
 
-
-
-    body_set_rotation2(barrel, angle, body_get_centroid(tank));
+    body_set_rotation_relative(barrel, angle, body_get_centroid(tank));
 
     // list_t *points = body_get_points(barrel);  // THIS IS MORE ACCURATE, ROTATES AROUND CENTER OF TANK
     // polygon_rotate(points, angle, body_get_centroid(tank));

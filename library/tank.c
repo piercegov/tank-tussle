@@ -34,9 +34,18 @@ const double OUTLINE_WIDTH = 0.5;
 list_t *tank_hitbox(vector_t c, double w, double h) {
     list_t *points = create_rectangle(c, w, h);
     list_add(points, (void *)vec_init(c.x + (w/4.0), c.y + (h/3.0)));
-    list_add(points, (void *)vec_init(c.x + (w/4.0), c.y + (1.25 * h)));
-    list_add(points, (void *)vec_init(c.x - (w/4.0), c.y + (1.25 * h)));
+    list_add(points, (void *)vec_init(c.x + (w/4.0), c.y + (1.32 * h)));
+    list_add(points, (void *)vec_init(c.x - (w/4.0), c.y + (1.32 * h)));
     list_add(points, (void *)vec_init(c.x - (w/4.0), c.y + (h/3.0)));
+    return points;
+}
+
+list_t *make_barrel(vector_t c, double w, double h) {
+    list_t *points = list_init(4, (free_func_t) free);
+    list_add(points, (void *)vec_init(c.x, c.y - (h/2.0)));
+    list_add(points, (void *)vec_init(c.x + w, c.y - (h/2.0)));
+    list_add(points, (void *)vec_init(c.x + w, c.y + (h/2.0)));
+    list_add(points, (void *)vec_init(c.x, c.y + (h/2.0)));
     return points;
 }
 
@@ -54,7 +63,7 @@ body_t *tank_init(double mass, rgb_color_t color, vector_t center, double size, 
 
     body_t *tank = body_init_with_info(points, mass, color, info, free);
 
-    list_t *barrel_points = create_rectangle(vec_add(center, (vector_t){barrel_dim.x / 2, 0}), barrel_dim.x, barrel_dim.y);
+    list_t *barrel_points = make_barrel(center, barrel_dim.x, barrel_dim.y);
     body_t *barrel = body_init(barrel_points, mass, color);
 
     info->barrel = barrel;

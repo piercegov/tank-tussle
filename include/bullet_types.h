@@ -4,7 +4,7 @@
 #include "body.h"
 #include "forces.h"
 #include "scene.h"
-const double FUEL_CONSTANT = 10.0;
+extern const double FUEL_CONSTANT;
 
 
 void create_kinetic_bullet(scene_t *scene, body_t *t1, body_t *t2, vector_t pos, vector_t velo,

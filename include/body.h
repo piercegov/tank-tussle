@@ -118,6 +118,8 @@ void body_set_centroid(body_t *body, vector_t x);
  */
 void body_set_velocity(body_t *body, vector_t v);
 
+void body_set_color(body_t *body, rgb_color_t color);
+
 /**
  * Changes a body's orientation in the plane.
  * The body is rotated about its center of mass.
@@ -128,7 +130,7 @@ void body_set_velocity(body_t *body, vector_t v);
  */
 void body_set_rotation(body_t *body, double angle);
 
-void body_set_rotation3(body_t *body, double angle, vector_t point, double length);
+void body_set_rotation_relative(body_t *body, double angle, vector_t point);
 
 /**
  * Applies a force to a body over the current tick.
