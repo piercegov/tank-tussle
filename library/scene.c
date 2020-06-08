@@ -11,6 +11,12 @@ const int INIT_BODIES = 5;
 typedef struct scene {
     list_t *bodies;
     list_t *forces;
+    body_t *tank1;
+    body_t *tank2;
+    body_t *terrain;
+    body_t *left_wall;
+    body_t *right_wall;
+    body_t *anchor;
 } scene_t;
 
 scene_t *scene_init() {

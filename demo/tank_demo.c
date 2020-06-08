@@ -38,8 +38,9 @@ const double DAMAGE = 25.0; //will need to update how this works with variable b
 const double BULLET_MASS = 1.0;
 const double BULLET_SIZE = 1.0;
 const double G = 690.0;
+const double DAMAGE = 25.0;
 
-const double BASE_POWER = 10.0;
+
 
 const double BASE_HEIGHT = 30.0;
 const double TERRAIN_SCALE = 20.0;
@@ -125,63 +126,7 @@ void render_tank(body_t *tank, double angle, double power, vector_t velocity, do
     }
 }
 
-void shoot_bullet(scene_t *scene, body_t *tank, double wind) {
-    list_t *points = create_arc(BULLET_SIZE, 2*PI);
-    bullet_info_t *bullet_aux = malloc(sizeof(bullet_info_t));
-    bullet_aux->damage = DAMAGE;
-    body_t *bullet = body_init_with_info(points, BULLET_MASS, BLACK, (void *) bullet_aux, free);
-    body_set_type(bullet, 1);
-    vector_t tank_center = body_get_centroid(tank);
-    body_set_centroid(bullet, tank_center);
 
-    double angle = tank_get_angle(tank);
-    angle = (angle * PI) / 180.0;
-    double x_dir = cos(angle);
-    double y_dir = sin(angle);
-
-    double power = tank_get_power(tank);
-    power = power + BASE_POWER;
-    vector_t velo = vec_multiply(power, (vector_t) {x_dir, y_dir});
-
-    int type = tank_get_number(tank);
-    if (type == 1) {
-        body_set_velocity(bullet, velo);
-    }
-    else {
-        //If the tank is on the righthand side then the x-velo needs to be flipped
-        velo.x = velo.x * -1;
-        body_set_velocity(bullet, velo);
-    }
-    SDL_Texture *bullet_text = sdl_create_sprite_texture("images/bullet.png");
-    add_texture(bullet, bullet_text, BULLET_SPRITE_SIZE);
-    scene_add_body(scene, bullet);
-    create_newtonian_gravity(scene, G, bullet, anchor);
-    create_oneway_destructive_collision(scene, left_wall, bullet);
-    create_oneway_destructive_collision(scene, right_wall, bullet);
-
-    create_bullet_rotate(scene, bullet);
-    create_drag(scene, wind, bullet);
-
-    body_t *other_tank;
-    if (type == 1) {
-        other_tank = tank2;
-    }
-    else {
-        other_tank = tank1;
-    }
-    create_damaging_collision(scene, other_tank, bullet);
-    double current_fuel = tank_get_fuel(other_tank);
-    if (current_fuel + NEW_FUEL > 100) {
-        tank_set_fuel(other_tank, 100.0);
-    }
-    else {
-        tank_set_fuel(other_tank, current_fuel + NEW_FUEL);
-    }
-    tank_set_turn(other_tank, true);
-    update_fuel_bar(other_tank);
-    create_bullet_destroy(scene, terrain, bullet);
-    tank_set_turn(tank, false);
-}
 
 bool off_screen_right(body_t *tank) {
     list_t *shape = body_get_shape(tank);
@@ -266,7 +211,8 @@ void shooter_key_handler(char key, key_event_type_t type, double held_time, scen
                     break;
 
                 case SPACE_BAR:
-                    shoot_bullet(scene, tank, WIND);
+                    create_kinetic_bullet(scene, tank, )
+                    shoot_bullet(scene, tank1, tank2, anchor, left_wall, rigth_wall, WIND, BULLET_DAMAGE);
             }
         }
 
@@ -319,7 +265,7 @@ void add_text_bars(scene_t *scene, vector_t center, vector_t dimensions, rgb_col
     list_t *rect = create_rectangle(center, dimensions.x, dimensions.y);
     body_t *b = body_init(rect, 1.0, color);
     body_set_centroid(b, center);
-    SDL_Texture *mess = sdl_create_text(message, "fonts/lordcorps.ttf", 24);
+    SDL_Texture *mess = sdl_create_text(message, "fonts/Lordcorps.ttf", 24);
     add_texture(b, mess, dimensions);
     scene_add_body(scene, b);
 }
@@ -404,7 +350,7 @@ scene_t *init_new_game(int rand_num) {
     scene_add_body(scene, fuel_bar2->outer);
     scene_add_body(scene, fuel_bar2->inner);
     scene_add_body(scene, fuel_bar2->fuel_level);
-    add_text_bars(scene, vec_add((vector_t) {0.0, BAR_HEIGHT}, body_get_centroid(fuel_bar1->outer)), (vector_t){ BAR_WIDTH, BAR_HEIGHT }, GREEEN, "PLAYER 1 FUEL");
+    add_text_bars(scene, vec_add((vector_t) {0.0, BAR_HEIGHT}, body_get_centroid(fuel_bar1->outer)), (vector_t){ BAR_WIDTH*5, BAR_HEIGHT*5 }, GREEEN, "PLAYER 1 FUEL");
     add_text_bars(scene, vec_add((vector_t) {0.0, BAR_HEIGHT}, body_get_centroid(fuel_bar2->outer)), (vector_t){ BAR_WIDTH, BAR_HEIGHT }, GREEEN, "PLAYER 2 FUEL");
 
     return scene;
