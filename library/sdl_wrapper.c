@@ -115,13 +115,13 @@ void sdl_init(vector_t min, vector_t max) {
     assert(min.x < max.x);
     assert(min.y < max.y);
 
+
     center = vec_multiply(0.5, vec_add(min, max));
     max_diff = vec_subtract(max, center);
     SDL_Init(SDL_INIT_EVERYTHING);
     IMG_Init(IMG_INIT_PNG);
     TTF_Init();
     // Mix_OpenAudio( 44100, MIX_DEFAULT_FORMAT, 2, 2048 )
-
     window = SDL_CreateWindow(
         WINDOW_TITLE,
         SDL_WINDOWPOS_CENTERED,
@@ -245,15 +245,11 @@ void sdl_render_scene(scene_t *scene) {
             vector_t size = vec_multiply(-0.5, body_get_texture_size(body));
             vector_t upper_left = vec_add(pix_center, size);
 
-            SDL_Point *pt = malloc(sizeof(SDL_Point));
-            *pt = (SDL_Point){ (int)pix_center.x, (int)pix_center.y };
+            double angle = 180 * body_get_rotation(body) / PIII;
 
             body_set_texture_rect(body, upper_left, body_get_texture_size(body));
             SDL_RenderCopyEx(renderer, body_get_texture(body), NULL, body_get_texture_rect(body),
-                -1*body_get_rotation(body), NULL, SDL_FLIP_NONE);
-
-
-            free(pt);
+                -1*angle, NULL, SDL_FLIP_NONE);
         }
     }
     sdl_show();
@@ -281,6 +277,7 @@ SDL_Texture *sdl_create_sprite_texture(char image[]) {
 
 SDL_Texture *sdl_create_text(char string[], char font[], int font_size) {
     TTF_Font *font_type = TTF_OpenFont(font, font_size);
+    assert(font_type != NULL);
     SDL_Color black = {0, 0, 0};
     SDL_Surface *surface_message = TTF_RenderText_Solid(font_type, string, black);
     SDL_Texture *message = SDL_CreateTextureFromSurface(renderer, surface_message);

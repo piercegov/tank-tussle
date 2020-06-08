@@ -6,6 +6,7 @@
 #include <assert.h>
 #include <stdio.h>
 #include <math.h>
+#include "polygon.h"
 
 const double MIN_DIST = 1.5;
 const double PIIII = 3.141592659;
@@ -57,6 +58,11 @@ typedef struct bullet_aux {
 typedef struct rotate_aux {
     body_t *body;
 } rotate_aux_t;
+
+typedef struct barrel_rotate_aux {
+    body_t *tank;
+    vector_t offset;
+} barrel_rotate_aux_t;
 
 force_t *force_init(force_creator_t forcer, void *aux, list_t *bodies, free_func_t freer) {
     force_t *force = malloc(sizeof(force_t));
@@ -449,14 +455,13 @@ void create_bullet_destroy(scene_t *scene, body_t *terrain, body_t *bullet) {
 void calc_bullet_rotate(rotate_aux_t *aux) {
     body_t *bullet = aux->body;
 
-
     vector_t velo = body_get_velocity(bullet);
     double angle;
     if (velo.x < 0) {
-        angle = (180.0 * atan(velo.y / velo.x) / PIIII) + 180.0;
+        angle = atan(velo.y / velo.x) + PIIII;
     }
     else {
-        angle = 180.0 * atan(velo.y / velo.x) / PIIII;
+        angle = atan(velo.y / velo.x);
     }
     body_set_rotation(bullet, angle);
 }
@@ -469,6 +474,43 @@ void create_bullet_rotate(scene_t *scene, body_t *bullet) {
     scene_add_bodies_force_creator(
         scene,
         (force_creator_t) (calc_bullet_rotate),
+        aux,
+        bodies,
+        (free_func_t) (free)
+    );
+}
+
+void calc_barrel_rotate(barrel_rotate_aux_t *aux) {
+    body_t *tank = aux->tank;
+    vector_t offset = aux->offset;
+    body_t *barrel = tank_get_barrel(tank);
+
+    body_set_centroid(barrel, vec_add(body_get_centroid(tank), offset));
+    double angle;
+    if (tank_get_number(tank) == 1) {
+      angle = PIIII * tank_get_angle(tank) / 180.0;
+    } else {
+      angle = PIIII * tank_get_angle(tank) / 180.0 * -1.0;
+    }
+
+
+
+    body_set_rotation2(barrel, angle, body_get_centroid(tank));
+
+    // list_t *points = body_get_points(barrel);  // THIS IS MORE ACCURATE, ROTATES AROUND CENTER OF TANK
+    // polygon_rotate(points, angle, body_get_centroid(tank));
+}
+
+void create_barrel_rotate(scene_t *scene, body_t *tank, vector_t offset) {
+    list_t *bodies = list_init(1, NULL);
+    list_add(bodies, tank);
+    barrel_rotate_aux_t *aux = malloc(sizeof(barrel_rotate_aux_t));
+    aux->tank = tank;
+    aux->offset = offset;
+
+    scene_add_bodies_force_creator(
+        scene,
+        (force_creator_t) (calc_barrel_rotate),
         aux,
         bodies,
         (free_func_t) (free)

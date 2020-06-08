@@ -8,6 +8,7 @@
 #include "vector.h"
 #include <SDL2/SDL_image.h>
 #include "body.h"
+#include <SDL2/SDL_ttf.h>
 
 // Values passed to a key handler when the given arrow key is pressed
 #define LEFT_ARROW 1

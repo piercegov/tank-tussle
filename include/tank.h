@@ -15,6 +15,7 @@ typedef struct tank_info {
     health_bar_t *health_bar;
     power_bar_t *power_bar;
     fuel_bar_t *fuel_bar;
+    body_t *barrel;
     double angle;
     double power;
     double health;
@@ -23,7 +24,7 @@ typedef struct tank_info {
     int tank_number;
 } tank_info_t;
 
-body_t *tank_init(double mass, rgb_color_t color, vector_t center, double size, int tank_num);
+body_t *tank_init(double mass, rgb_color_t color, vector_t center, double size, int tank_num, vector_t offset);
 
 tank_info_t *tank_get_info(body_t *tank);
 
@@ -58,4 +59,7 @@ bool tank_is_dead(body_t *tank);
 bool tank_get_turn(body_t *tank);
 
 void tank_set_turn(body_t *tank, bool turn);
+
+body_t *tank_get_barrel(body_t *tank);
+
 #endif // #ifndef __TANK_H__

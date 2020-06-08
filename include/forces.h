@@ -154,4 +154,6 @@ void create_health_follow(scene_t *scene, body_t *tank);
 void create_bullet_destroy(scene_t *scene, body_t *terrain, body_t *bullet);
 
 void create_bullet_rotate(scene_t *scene, body_t *bullet);
+
+void create_barrel_rotate(scene_t *scene, body_t *tank, vector_t offset);
 #endif // #ifndef __FORCES_H__
