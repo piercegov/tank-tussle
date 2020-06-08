@@ -34,8 +34,8 @@ const double OUTLINE_WIDTH = 0.5;
 list_t *tank_hitbox(vector_t c, double w, double h) {
     list_t *points = create_rectangle(c, w, h);
     list_add(points, (void *)vec_init(c.x + (w/4.0), c.y + (h/3.0)));
-    list_add(points, (void *)vec_init(c.x + (w/4.0), c.y + (1.32 * h)));
-    list_add(points, (void *)vec_init(c.x - (w/4.0), c.y + (1.32 * h)));
+    list_add(points, (void *)vec_init(c.x + (w/4.0), c.y + (1.3 * h)));
+    list_add(points, (void *)vec_init(c.x - (w/4.0), c.y + (1.3 * h)));
     list_add(points, (void *)vec_init(c.x - (w/4.0), c.y + (h/3.0)));
     return points;
 }

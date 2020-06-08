@@ -84,7 +84,7 @@ body_t *init_gen_bullet(scene_t *scene, body_t *t1, body_t *t2, vector_t pos, ve
 
     SDL_Texture *bullet_text = sdl_create_sprite_texture("images/bullet.png");
     add_bullet_texture(bullet, bullet_text, BULLET_SPRITE_SIZE);
-    
+
     scene_add_body(scene, bullet);
     create_oneway_destructive_collision(scene, scene_get_left(scene), bullet);
     create_oneway_destructive_collision(scene, scene_get_right(scene), bullet);

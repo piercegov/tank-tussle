@@ -28,7 +28,7 @@ const double CLOUD_SIZE = 1.0;
 const size_t NUM_CLOUDS = 8;
 const vector_t CLOUD_SPRITE_SIZE = {128.0, 64.0};
 const vector_t TANK_SPRITE_SIZE = {34.0, 26.0};
-const vector_t BARREL_SIZE = {30.0, 10.0};
+const vector_t BARREL_SPRITE_SIZE = {25.0, 12.5};
 const vector_t TANK_VELO = {20.0, 0};
 const vector_t TANK1_START_POS = {20.0, 50.0};
 const vector_t TANK2_START_POS = {180.0, 50.0};
@@ -300,12 +300,12 @@ scene_t *init_new_game(rgb_color_t sky_color) {
     SDL_Texture *texture2 = sdl_create_sprite_texture("images/tank_big_red.png");
 
     SDL_Texture *barrel1 = sdl_create_sprite_texture("images/barrel_blue.png");
-    SDL_Texture *barrel2 = sdl_create_sprite_texture("images/barrel_blue.png");
+    SDL_Texture *barrel2 = sdl_create_sprite_texture("images/barrel_red.png");
 
     scene_add_body(scene, tank1);
     scene_add_body(scene, tank2);
-    add_texture(tank_get_barrel(tank1), barrel1, BARREL_SIZE);
-    add_texture(tank_get_barrel(tank2), barrel2, BARREL_SIZE);
+    add_texture(tank_get_barrel(tank1), barrel1, BARREL_SPRITE_SIZE);
+    add_texture(tank_get_barrel(tank2), barrel2, BARREL_SPRITE_SIZE);
     create_barrel_rotate(scene, tank1, BARREL_DIM);
     create_barrel_rotate(scene, tank2, vec_negate(BARREL_DIM));
 
