@@ -10,6 +10,7 @@
 // #include <SDL2/SDL_ttf.h>
 #include "body.h"
 #include <SDL2/SDL_ttf.h>
+#include <SDL2/SDL_mixer.h>
 
 const char WINDOW_TITLE[] = "CS 3";
 const int WINDOW_WIDTH = 1000;
@@ -121,7 +122,7 @@ void sdl_init(vector_t min, vector_t max) {
     SDL_Init(SDL_INIT_EVERYTHING);
     IMG_Init(IMG_INIT_PNG);
     TTF_Init();
-    // Mix_OpenAudio( 44100, MIX_DEFAULT_FORMAT, 2, 2048 )
+    Mix_OpenAudio( 22050, MIX_DEFAULT_FORMAT, 2, 2048 );
     window = SDL_CreateWindow(
         WINDOW_TITLE,
         SDL_WINDOWPOS_CENTERED,
@@ -150,6 +151,7 @@ bool sdl_is_done(void *ptr) {
                 free(event);
                 IMG_Quit();
                 TTF_Quit();
+                Mix_Quit();
                 return true;
             case SDL_KEYDOWN:
             case SDL_KEYUP:

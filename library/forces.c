@@ -245,13 +245,18 @@ void calc_collision(collision_aux_t *aux){
     body_t *body1 = aux->body1;
     body_t *body2 = aux->body2;
 
-    collision_info_t info = find_collision(body_get_shape(body1), body_get_shape(body2));
+    list_t *p1 = body_get_shape(body1);
+    list_t *p2 = body_get_shape(body2);
+
+    collision_info_t info = find_collision(p1, p2);
     if (info.collided && !aux->has_collided) {
         handler(body1, body2, info.axis, aux->aux);
         aux->has_collided = true;
     } else if (!info.collided) {
         aux->has_collided = false;
     }
+    list_free(p1);
+    list_free(p2);
 
 }
 
@@ -297,8 +302,6 @@ void calc_damaging_collision(body_t *body1, body_t *body2, vector_t axis, void *
     tank_decrease_health(body1, damage);
     body_remove(body2);
 }
-
-
 
 void create_destructive_collision(scene_t *scene, body_t *body1, body_t *body2){
     create_collision(scene, body1, body2, (collision_handler_t) calc_destructive_collision,
@@ -383,6 +386,7 @@ void calc_terrain_follow(terrain_aux_t *aux) {
     if (fabs(height_diff) > 0.01) {
         body_set_centroid(tank, vec_subtract(center, (vector_t) {0, height_diff - 1}));
     }
+    list_free(tank_pts);
 
 }
 
@@ -440,8 +444,8 @@ bool is_colliding(body_t *terrain, body_t *body) {
             min_y = pt->y;
         }
     }
-
     vector_t terrain_max = body_get_max(terrain, min_x, max_x);
+    list_free(bullet_pts);
     return min_y - terrain_max.y <= 0.0;
 }
 

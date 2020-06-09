@@ -8,6 +8,7 @@
 #include "interval.h"
 #include <stdbool.h>
 #include "collision.h"
+#include <SDL2/SDL_image.h>
 
 typedef struct body {
     list_t *points;
@@ -71,6 +72,7 @@ void body_free(body_t *body) {
     }
     if (body->texture != NULL) {
         free(body->texture_rect);
+        SDL_DestroyTexture(body->texture);
     }
     free(body);
 }

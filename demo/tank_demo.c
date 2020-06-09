@@ -17,6 +17,7 @@
 #include "bullet_types.h"
 #include "fuel_bar.h"
 #include <unistd.h>
+#include <SDL2/SDL_mixer.h>
 
 // Cartesian Coordinates (not pixel values)
 const vector_t MIN = {0.0, 0.0};
@@ -36,7 +37,6 @@ const vector_t TANK2_START_POS = {180.0, 50.0};
 const double BULLET_DAMAGE = 20.0; //will need to update how this works with variable bullet types
 const double MULTISHOT_DAMAGE = 15.0;
 const double BASE_POWER = 30.0;
-
 const double BASE_HEIGHT = 30.0;
 const double TERRAIN_SCALE = 20.0;
 const int NUM_TERRAIN_LEVELS = 7;
@@ -74,6 +74,16 @@ body_t *tank_turn(scene_t *scene, body_t *tank1, body_t *tank2) {
     }
     return tank2;
 }
+
+void add_sound_effect(char effect[]) {
+    Mix_Chunk *g_effect = Mix_LoadWAV(effect);
+    Mix_PlayChannel(-1, g_effect, 0);
+    Mix_FreeChunk(g_effect);
+}
+
+// void free_sound_effect(Mix_Chunk *effect) {
+//     Mix_FreeChunk(effect);
+// }
 
 void add_walls(scene_t *scene) {
     list_t *rect = create_rectangle((vector_t){VEC_ZERO.x - WALL_WIDTH / 2, MAX.y / 2}, WALL_WIDTH, MAX.x);
@@ -156,6 +166,7 @@ bool off_screen_right(body_t *tank) {
             return true;
         }
     }
+    list_free(shape);
     return false;
 }
 
@@ -167,6 +178,7 @@ bool off_screen_left(body_t *tank) {
             return true;
         }
     }
+    list_free(shape);
     return false;
 }
 
@@ -247,6 +259,8 @@ void shooter_key_handler(char key, key_event_type_t type, double held_time, scen
 
                 case SPACE_BAR:
                     shoot_bullet(scene, WIND);
+                    add_sound_effect("sounds/boomboomgoboom.wav");
+                    render_tank(tank, 0.0, 0.0, (vector_t){ 0 , 0 }, held_time);
             }
         }
 
@@ -390,7 +404,7 @@ scene_t *init_new_game(rgb_color_t sky_color) {
     add_text_bars(scene, vec_add((vector_t) {0.0, BAR_HEIGHT}, body_get_centroid(fuel_bar2->outer)), (vector_t){ BAR_WIDTH, BAR_HEIGHT }, TERRAIN_GREEN, "PLAYER 2 FUEL");
 
     add_text_bars(scene, (vector_t) {MAX.x / 2, 7 * MAX.y / 8}, (vector_t) {150.0, 4.0}, sky_color,
-        "Move: Left/right || Power: w/s || Angle: Up/down || Shoot: Space bar || Bullet Type: 1 (Normal), 2 (Scatter), 3 (Radius)");
+        "Move: Left/right || Power: w/s || Angle: Up/down || Shoot: Space bar || Bullet Type: 1 (Normal), 2 (Scatter), 3 (Cluster)");
 
     return scene;
 }

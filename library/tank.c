@@ -49,6 +49,13 @@ list_t *make_barrel(vector_t c, double w, double h) {
     return points;
 }
 
+void tank_free(tank_info_t *info) {
+    free(info->health_bar);
+    free(info->power_bar);
+    free(info->fuel_bar);
+    free(info);
+}
+
 body_t *tank_init(double mass, rgb_color_t color, vector_t center, double size, int tank_num, vector_t barrel_dim) {
     list_t *points = tank_hitbox(center, TANK_WIDTH, TANK_HEIGHT);
     tank_info_t *info = malloc(sizeof(tank_info_t));
@@ -62,7 +69,7 @@ body_t *tank_init(double mass, rgb_color_t color, vector_t center, double size, 
 
     // Health Bar freed in scene free
 
-    body_t *tank = body_init_with_info(points, mass, color, info, free);
+    body_t *tank = body_init_with_info(points, mass, color, info, (free_func_t) tank_free);
 
     list_t *barrel_points = make_barrel(center, barrel_dim.x, barrel_dim.y);
     body_t *barrel = body_init(barrel_points, mass, color);

@@ -13,7 +13,7 @@ const vector_t BOMB_SPRITE_SIZE = {30.0, 16.0};
 const double CLUSTER_OFF = 5.0;
 const double NUM_CLUSTERS = 6.0;
 const double CLUSTER_DAMAGE = 10.0;
-const double CLUSTER_VELO = 20.0;
+const double CLUSTER_VELO = 30.0;
 const double G = 9001.0;
 const double BULLET_SIZE = 1.0;
 const double FUEL_CONSTANT = 10.0;
@@ -65,7 +65,7 @@ void create_cluster_bomb_collision(scene_t *scene, body_t *t1, body_t *t2, body_
         (free_func_t) free);
 }
 
-void change_turn(body_t *cur_tank, body_t *next_tank) {
+void change_turn(scene_t *scene, body_t *cur_tank, body_t *next_tank) {
     double current_fuel = tank_get_fuel(next_tank);
     if (current_fuel + 10.0 > 100) {
         tank_set_fuel(next_tank, 100.0);
@@ -95,7 +95,7 @@ body_t *init_gen_bullet(scene_t *scene, body_t *t1, body_t *t2, vector_t pos, ve
     create_drag(scene, wind, bullet);
 
     create_damaging_collision(scene, t1, bullet);
-    change_turn(t2, t1);
+    change_turn(scene, t2, t1);
 
     return bullet;
 }
