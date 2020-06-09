@@ -29,6 +29,7 @@ typedef struct tank_info {
     double fuel;
     bool turn;
     int tank_number;
+    int bullet_type;
 } tank_info_t;
 
 body_t *tank_init(double mass, rgb_color_t color, vector_t center, double size, int tank_num, vector_t offset);
@@ -68,5 +69,9 @@ bool tank_get_turn(body_t *tank);
 void tank_set_turn(body_t *tank, bool turn);
 
 body_t *tank_get_barrel(body_t *tank);
+
+int tank_get_bullet_type(body_t *tank);
+
+void tank_set_bullet_type(body_t *tank, int type);
 
 #endif // #ifndef __TANK_H__

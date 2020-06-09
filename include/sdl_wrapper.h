@@ -18,6 +18,9 @@
 #define SPACE_BAR 5
 #define W 6
 #define S 7
+#define KEY_1 8
+#define KEY_2 9
+#define KEY_3 10
 
 
 /**

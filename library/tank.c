@@ -58,6 +58,7 @@ body_t *tank_init(double mass, rgb_color_t color, vector_t center, double size, 
     info->health = 100.0;
     info->fuel = 100.0;
     info->tank_number = tank_num;
+    info->bullet_type = 1;
 
     // Health Bar freed in scene free
 
@@ -161,4 +162,12 @@ void tank_set_turn(body_t *tank, bool turn) {
 
 body_t *tank_get_barrel(body_t *tank) {
     return tank_get_info(tank)->barrel;
+}
+
+int tank_get_bullet_type(body_t *tank) {
+    return tank_get_info(tank)->bullet_type;
+}
+
+void tank_set_bullet_type(body_t *tank, int type) {
+    tank_get_info(tank)->bullet_type = type;
 }

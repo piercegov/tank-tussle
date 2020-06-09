@@ -8,7 +8,11 @@
 #include "math.h"
 
 const vector_t BULLET_SPRITE_SIZE = {16.0, 9.0};
+const double BULLET_MASS = 1.0;
+const vector_t BOMB_SPRITE_SIZE = {30.0, 16.0};
 const double CLUSTER_OFF = 5.0;
+const double NUM_CLUSTERS = 6.0;
+const double CLUSTER_DAMAGE = 10.0;
 const double CLUSTER_VELO = 20.0;
 const double G = 9001.0;
 const double BULLET_SIZE = 1.0;
@@ -39,7 +43,9 @@ void calc_cluster_bomb_collision(body_t *body1, body_t *bullet, vector_t axis, c
     for (size_t i = 0; i < num_clusters; i++) {
         vector_t velo = vec_multiply(CLUSTER_VELO, (vector_t) {cos(i * rads_per), sin(i*rads_per)});
         vector_t pos = vec_multiply(CLUSTER_OFF, (vector_t) {cos(i * rads_per), sin(i*rads_per)});
-        create_kinetic_bullet(scene, aux->target, aux->shooter, vec_add(pos, body_get_centroid(bullet)), velo, aux->wind, aux->dmg);
+        char path[] = "images/cherry_bomb.png";
+        create_kinetic_bullet(scene, aux->target, aux->shooter, vec_add(pos, body_get_centroid(bullet)),
+            velo, aux->wind, aux->dmg, path, BULLET_SPRITE_SIZE);
     }
     body_remove(bullet);
 }
@@ -77,13 +83,10 @@ body_t *init_gen_bullet(scene_t *scene, body_t *t1, body_t *t2, vector_t pos, ve
     list_t *points = create_arc(BULLET_SIZE, 2*PI);
     kinetic_bullet_aux_t *bullet_aux = malloc(sizeof(kinetic_bullet_aux_t));
     bullet_aux->damage = dmg;
-    body_t *bullet = body_init_with_info(points, 1.0, BLACK, (void *) bullet_aux, free);
+    body_t *bullet = body_init_with_info(points, BULLET_MASS, BLACK, (void *) bullet_aux, free);
     body_set_type(bullet, 1);
     body_set_centroid(bullet, pos);
     body_set_velocity(bullet, velo);
-
-    SDL_Texture *bullet_text = sdl_create_sprite_texture("images/bullet.png");
-    add_bullet_texture(bullet, bullet_text, BULLET_SPRITE_SIZE);
 
     scene_add_body(scene, bullet);
     create_oneway_destructive_collision(scene, scene_get_left(scene), bullet);
@@ -98,8 +101,10 @@ body_t *init_gen_bullet(scene_t *scene, body_t *t1, body_t *t2, vector_t pos, ve
 }
 
 void create_kinetic_bullet(scene_t *scene, body_t *t1, body_t *t2, vector_t pos, vector_t velo,
-        double wind, double dmg) {
+        double wind, double dmg, char path[], vector_t sprite_size) {
     body_t *bullet = init_gen_bullet(scene, t1, t2, pos, velo, wind, dmg);
+    SDL_Texture *bullet_text = sdl_create_sprite_texture(path);
+    add_bullet_texture(bullet, bullet_text, sprite_size);
     create_bullet_destroy(scene, scene_get_terrain(scene), bullet);
     create_newtonian_gravity(scene, G, bullet, scene_get_anchor(scene));
 }
@@ -107,6 +112,17 @@ void create_kinetic_bullet(scene_t *scene, body_t *t1, body_t *t2, vector_t pos,
 void create_cluster_bomb(scene_t *scene, body_t *t1, body_t *t2, vector_t pos, vector_t velo,
         double wind, double dmg) {
     body_t *bullet = init_gen_bullet(scene, t1, t2, pos, velo, wind, dmg);
-    create_cluster_bomb_collision(scene, t1, t2, bullet, 70, 10.0, 0.0);
+    SDL_Texture *bullet_text = sdl_create_sprite_texture("images/cherry_bomb.png");
+    add_bullet_texture(bullet, bullet_text, BOMB_SPRITE_SIZE);
+    create_cluster_bomb_collision(scene, t1, t2, bullet, NUM_CLUSTERS, CLUSTER_DAMAGE, 0.0);
     create_newtonian_gravity(scene, G, bullet, scene_get_anchor(scene));
+}
+
+void create_multishot(scene_t *scene, body_t *t1, body_t *t2, vector_t pos, vector_t velo,
+        double wind, double dmg, double num_bullets) {
+    char path[] = "images/flash_bomb.png";
+    for (int i = 0; i < num_bullets; i++) {
+        create_kinetic_bullet(scene, t1, t2, pos, velo, wind, dmg, path, BULLET_SPRITE_SIZE);
+        velo = vec_multiply(0.9, velo); //Reduce velocity to create spread
+    }
 }

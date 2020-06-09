@@ -33,8 +33,8 @@ const vector_t TANK_VELO = {20.0, 0};
 const vector_t TANK1_START_POS = {20.0, 50.0};
 const vector_t TANK2_START_POS = {180.0, 50.0};
 
-const double DAMAGE = 25.0; //will need to update how this works with variable bullet types
-const double BULLET_MASS = 1.0;
+const double BULLET_DAMAGE = 20.0; //will need to update how this works with variable bullet types
+const double MULTISHOT_DAMAGE = 15.0;
 const double BASE_POWER = 30.0;
 
 const double BASE_HEIGHT = 30.0;
@@ -43,6 +43,7 @@ const int NUM_TERRAIN_LEVELS = 7;
 const double TERRAIN_DAMPING = 0.5;
 const double TERRAIN_MASS = 10.0;
 const double TERRAIN_AMPLITUDE = 0.8;
+const double MULTISHOT_NUM = 5.0;
 
 const double WIND = 0.0;
 const double WALL_WIDTH = 1.0;
@@ -108,7 +109,7 @@ void render_tank(body_t *tank, double angle, double power, vector_t velocity, do
     }
 }
 
-void shoot_bullet(scene_t *scene, double wind, double dmg) {
+void shoot_bullet(scene_t *scene, double wind) {
     vector_t tank_center;
     body_t *t1;
     body_t *t2;
@@ -135,8 +136,16 @@ void shoot_bullet(scene_t *scene, double wind, double dmg) {
     if (type == 2) {
         velo.x = velo.x * -1;
     }
-    // create_cluster_bomb(scene, t2, t1, tank_center, velo, wind, dmg);
-    create_kinetic_bullet(scene, t2, t1, tank_center, velo, wind, dmg);
+
+    if (tank_get_bullet_type(t1) == 1) {
+      create_kinetic_bullet(scene, t2, t1, tank_center, velo, wind, BULLET_DAMAGE, "images/bullet.png", BULLET_SPRITE_SIZE);
+    }
+    else if (tank_get_bullet_type(t1) == 2) {
+      create_multishot(scene, t2, t1, tank_center, velo, wind, MULTISHOT_DAMAGE, MULTISHOT_NUM);
+    }
+    else if (tank_get_bullet_type(t1) == 3) {
+      create_cluster_bomb(scene, t2, t1, tank_center, velo, wind, BULLET_DAMAGE);
+    }
 }
 
 bool off_screen_right(body_t *tank) {
@@ -221,8 +230,23 @@ void shooter_key_handler(char key, key_event_type_t type, double held_time, scen
                     }
                     break;
 
+                case KEY_1:
+                    tank_set_bullet_type(tank, 1);
+                    render_tank(tank, 0.0, 0.0, (vector_t){ 0 , 0 }, held_time);
+                    break;
+
+                case KEY_2:
+                    tank_set_bullet_type(tank, 2);
+                    render_tank(tank, 0.0, 0.0, (vector_t){ 0 , 0 }, held_time);
+                    break;
+
+                case KEY_3:
+                    tank_set_bullet_type(tank, 3);
+                    render_tank(tank, 0.0, 0.0, (vector_t){ 0 , 0 }, held_time);
+                    break;
+
                 case SPACE_BAR:
-                    shoot_bullet(scene, WIND, DAMAGE);
+                    shoot_bullet(scene, WIND);
             }
         }
 

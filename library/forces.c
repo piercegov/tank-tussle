@@ -459,8 +459,6 @@ void calc_collision_with_terrain(collision_terrain_aux_t *aux){
 
 }
 
-
-
 void create_terrain_collision(scene_t *scene, body_t *terrain, body_t *bullet, collision_handler_t handler, void *aux, free_func_t freer) {
     list_t *bodies = list_init(2, NULL);
     list_add(bodies, terrain);
