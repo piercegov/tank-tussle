@@ -299,8 +299,8 @@ scene_t *init_new_game(rgb_color_t sky_color) {
     SDL_Texture *texture1 = sdl_create_sprite_texture("images/tank_big_blue.png");
     SDL_Texture *texture2 = sdl_create_sprite_texture("images/tank_big_red.png");
 
-    SDL_Texture *barrel1 = sdl_create_sprite_texture("images/barrel_blue_big.png");
-    SDL_Texture *barrel2 = sdl_create_sprite_texture("images/barrel_blue_red.png");
+    SDL_Texture *barrel1 = sdl_create_sprite_texture("images/barrel_blue.png");
+    SDL_Texture *barrel2 = sdl_create_sprite_texture("images/barrel_blue.png");
 
     scene_add_body(scene, tank1);
     scene_add_body(scene, tank2);
