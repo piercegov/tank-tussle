@@ -151,7 +151,7 @@ bool sdl_is_done(void *ptr) {
                 free(event);
                 IMG_Quit();
                 TTF_Quit();
-                Mix_Quit();
+                Mix_CloseAudio();
                 return true;
             case SDL_KEYDOWN:
             case SDL_KEYUP:

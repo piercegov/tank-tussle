@@ -60,6 +60,8 @@ const rgb_color_t LIGHT_BLUE = {173.0 / 255.0, 216.0 / 255.0, 230.0 / 255.0};
 const rgb_color_t LIGHT_GRAY = {211.0 / 255.0, 211.0 / 255.0, 211.0 / 255.0};
 const rgb_color_t TERRAIN_GREEN = {0.0, 153.0/255.0, 51.0/255.0};
 
+Mix_Chunk *boom = NULL;
+
 body_t *tank1;
 body_t *tank2;
 body_t *terrain;
@@ -75,10 +77,9 @@ body_t *tank_turn(scene_t *scene, body_t *tank1, body_t *tank2) {
     return tank2;
 }
 
-void add_sound_effect(char effect[]) {
-    Mix_Chunk *g_effect = Mix_LoadWAV(effect);
-    Mix_PlayChannel(-1, g_effect, 0);
-    Mix_FreeChunk(g_effect);
+void add_sound_effect(Mix_Chunk *chunk, char effect[]) {
+    chunk = Mix_LoadWAV(effect);
+    Mix_PlayChannel(-1, chunk, 0);
 }
 
 // void free_sound_effect(Mix_Chunk *effect) {
@@ -259,7 +260,7 @@ void shooter_key_handler(char key, key_event_type_t type, double held_time, scen
 
                 case SPACE_BAR:
                     shoot_bullet(scene, WIND);
-                    add_sound_effect("sounds/boomboomgoboom.wav");
+                    add_sound_effect(boom, "sounds/boomboomgoboom.wav");
                     render_tank(tank, 0.0, 0.0, (vector_t){ 0 , 0 }, held_time);
             }
         }
@@ -474,6 +475,7 @@ int main() {
             }
         }
     }
+    Mix_FreeChunk(boom);
     scene_free(scene);
     return 0;
 }

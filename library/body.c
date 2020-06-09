@@ -66,12 +66,12 @@ body_t *body_init_with_info(list_t *shape, double mass, rgb_color_t color, void 
 void body_free(body_t *body) {
     list_free(body->points);
     free(body->velocity);
+    free(body->texture_rect);
     free_func_t info_free = body->freer;
     if (body->info != NULL && info_free != NULL){
         info_free(body->info);
     }
     if (body->texture != NULL) {
-        free(body->texture_rect);
         SDL_DestroyTexture(body->texture);
     }
     free(body);
