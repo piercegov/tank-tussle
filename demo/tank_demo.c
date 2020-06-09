@@ -86,6 +86,7 @@ void add_walls(scene_t *scene) {
     rect = create_rectangle((vector_t){MAX.x + WALL_WIDTH / 2, MAX.y / 2}, WALL_WIDTH, MAX.x);
     right_wall = body_init(rect, INFINITY, BLACK);
     scene_add_body(scene, right_wall);
+    scene_walls(scene, left_wall, right_wall);
 }
 
 void add_texture(body_t *b, SDL_Texture *texture, vector_t sprite_size) {
@@ -292,7 +293,7 @@ scene_t *init_new_game(rgb_color_t sky_color) {
     scene_add_body(scene, terrain);
     scene_terrain(scene, terrain);
 
-    SDL_Texture *texture1 = sdl_create_sprite_texture("images/tank_big_blue.png"); 
+    SDL_Texture *texture1 = sdl_create_sprite_texture("images/tank_big_blue.png");
     SDL_Texture *texture2 = sdl_create_sprite_texture("images/tank_big_red.png");
 
     SDL_Texture *barrel1 = sdl_create_sprite_texture("images/barrel_blue_big.png");

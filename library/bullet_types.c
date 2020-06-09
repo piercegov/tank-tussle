@@ -12,7 +12,7 @@ const double CLUSTER_OFF = 5.0;
 const double CLUSTER_VELO = 20.0;
 const double G = 9001.0;
 const double BULLET_SIZE = 1.0;
-const double FUEL_CONSTANT = 10.0;
+
 
 typedef struct cluster_aux {
     scene_t *scene;
@@ -37,7 +37,6 @@ void calc_cluster_bomb_collision(body_t *body1, body_t *bullet, vector_t axis, c
     scene_t *scene = aux->scene;
     double rads_per = 2 * PI / num_clusters;
     for (size_t i = 0; i < num_clusters; i++) {
-        printf("%f\n", cos(i * rads_per));
         vector_t velo = vec_multiply(CLUSTER_VELO, (vector_t) {cos(i * rads_per), sin(i*rads_per)});
         vector_t pos = vec_multiply(CLUSTER_OFF, (vector_t) {cos(i * rads_per), sin(i*rads_per)});
         create_kinetic_bullet(scene, aux->target, aux->shooter, vec_add(pos, body_get_centroid(bullet)), velo, aux->wind, aux->dmg);
@@ -62,11 +61,11 @@ void create_cluster_bomb_collision(scene_t *scene, body_t *t1, body_t *t2, body_
 
 void change_turn(body_t *cur_tank, body_t *next_tank) {
     double current_fuel = tank_get_fuel(next_tank);
-    if (current_fuel + FUEL_CONSTANT > 100) {
+    if (current_fuel + 10.0 > 100) {
         tank_set_fuel(next_tank, 100.0);
     }
     else {
-        tank_set_fuel(next_tank, current_fuel + FUEL_CONSTANT);
+        tank_set_fuel(next_tank, current_fuel + 10.0);
     }
     tank_set_turn(next_tank, true);
     update_fuel_bar(next_tank);
