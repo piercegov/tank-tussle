@@ -37,6 +37,15 @@ typedef struct collision_aux {
     free_func_t freer;
 } collision_aux_t;
 
+typedef struct collision_terrain_aux {
+    body_t *terrain;
+    body_t *body;
+    void *aux;
+    bool has_collided;
+    collision_handler_t handler;
+    free_func_t freer;
+} collision_terrain_aux_t;
+
 typedef struct physics_aux {
     double elasticity;
 } physics_aux_t;
@@ -103,6 +112,13 @@ void drag_aux_free(drag_aux_t *aux){
 }
 
 void collision_aux_free(collision_aux_t *aux){
+    if (aux->freer != NULL) {
+        (aux->freer)(aux->aux);
+    }
+    free(aux);
+}
+
+void collision_terrain_aux_free(collision_terrain_aux_t *aux){
     if (aux->freer != NULL) {
         (aux->freer)(aux->aux);
     }
@@ -283,6 +299,8 @@ void calc_damaging_collision(body_t *body1, body_t *body2, vector_t axis, void *
     body_remove(body2);
 }
 
+
+
 void create_destructive_collision(scene_t *scene, body_t *body1, body_t *body2){
     create_collision(scene, body1, body2, (collision_handler_t) calc_destructive_collision,
                      NULL, NULL);
@@ -405,16 +423,12 @@ void create_health_follow(scene_t *scene, body_t *tank) {
 }
 
 // Bullet Stuff
-
-void calc_bullet_destroy(bullet_aux_t *aux) {
-    body_t *terrain = aux->terrain;
-    body_t *bullet = aux->body;
-
+bool is_colliding(body_t *terrain, body_t *body) {
     double min_x = 100000;
     double max_x = 0;
     double min_y = 100000;
 
-    list_t *bullet_pts = body_get_shape(bullet);
+    list_t *bullet_pts = body_get_shape(body);
     for (size_t i=0; i < list_size(bullet_pts); i++) {
         vector_t *pt = (vector_t *) list_get(bullet_pts, i);
         if (pt->x < min_x) {
@@ -429,27 +443,51 @@ void calc_bullet_destroy(bullet_aux_t *aux) {
     }
 
     vector_t terrain_max = body_get_max(terrain, min_x, max_x);
-
-    double height_diff = min_y - terrain_max.y;
-    if (height_diff <= 0) {
-        body_remove(bullet);
-    }
+    return min_y - terrain_max.y <= 0.0;
 }
 
-void create_bullet_destroy(scene_t *scene, body_t *terrain, body_t *bullet) {
+void calc_collision_with_terrain(collision_terrain_aux_t *aux){
+    collision_handler_t handler = aux->handler;
+    body_t *body1 = aux->terrain;
+    body_t *body2 = aux->body;
+    bool colliding = is_colliding(body1, body2);
+    if (colliding && !aux->has_collided) {
+        handler(body1, body2, VEC_ZERO, aux->aux);
+        aux->has_collided = true;
+    } else if (!colliding) {
+        aux->has_collided = false;
+    }
+
+}
+
+
+
+void create_terrain_collision(scene_t *scene, body_t *terrain, body_t *bullet, collision_handler_t handler, void *aux, free_func_t freer) {
     list_t *bodies = list_init(2, NULL);
     list_add(bodies, terrain);
     list_add(bodies, bullet);
-    terrain_aux_t *aux = malloc(sizeof(terrain_aux_t));
-    aux->terrain = terrain;
-    aux->body = bullet;
+    collision_terrain_aux_t *aux1 = malloc(sizeof(collision_terrain_aux_t));
+    aux1->terrain = terrain;
+    aux1->body = bullet;
+    aux1->handler = handler;
+    aux1->freer = freer;
+    aux1->aux = aux;
     scene_add_bodies_force_creator(
         scene,
-        (force_creator_t) (calc_bullet_destroy),
-        aux,
+        (force_creator_t) (calc_collision_with_terrain),
+        aux1,
         bodies,
-        (free_func_t) (free)
+        (free_func_t) (freer)
     );
+}
+
+void calc_bullet_terrain_destroy(body_t *body1, body_t *body2, vector_t axis, bullet_aux_t *aux) {
+    body_remove(body2);
+}
+
+void create_bullet_destroy(scene_t *scene, body_t *terrain, body_t *bullet) {
+    create_terrain_collision(scene, terrain, bullet, (collision_handler_t) calc_bullet_terrain_destroy,
+        NULL, NULL);
 }
 
 void calc_bullet_rotate(rotate_aux_t *aux) {

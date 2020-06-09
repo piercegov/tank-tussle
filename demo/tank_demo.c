@@ -14,6 +14,7 @@
 #include <stdbool.h>
 #include <assert.h>
 #include "power_bar.h"
+#include "bullet_types.h"
 #include "fuel_bar.h"
 #include <unistd.h>
 
@@ -50,7 +51,7 @@ const double TERRAIN_DAMPING = 0.5;
 const double TERRAIN_MASS = 10.0;
 const double TERRAIN_AMPLITUDE = 0.8;
 const double FUEL_CONSTANT = 10.0;
-const double NEW_FUEL = 10.0;
+
 const double WIND = 0.0;
 const double WALL_WIDTH = 1.0;
 const vector_t TEXT_SIZE = { 150.0, 50.0 };
@@ -121,66 +122,37 @@ void render_tank(body_t *tank, double angle, double power, vector_t velocity, do
     }
 }
 
-void shoot_bullet(scene_t *scene, body_t *tank, double wind) {
-    list_t *points = create_arc(BULLET_SIZE, 2*PI);
-    bullet_info_t *bullet_aux = malloc(sizeof(bullet_info_t));
-    bullet_aux->damage = DAMAGE;
-    body_t *bullet = body_init_with_info(points, BULLET_MASS, BLACK, (void *) bullet_aux, free);
-    body_set_type(bullet, 1);
+void shoot_bullet(scene_t *scene, double wind, double dmg) {
+    vector_t tank_center;
+    body_t *t1;
+    body_t *t2;
+    if (tank_get_turn(tank1)) {
+        t1 = tank1;
+        t2 = tank2;
+        tank_center = body_get_centroid(tank1);
+    } else {
+        t2 = tank1;
+        t1 = tank2;
+        tank_center = body_get_centroid(tank2);
+    }
 
-    body_t *barrel = tank_get_barrel(tank);
-    vector_t barrel_center = body_get_centroid(barrel);
-    body_set_centroid(bullet, barrel_center);
-
-    double angle = tank_get_angle(tank);
+    double angle = tank_get_angle(t1);
     angle = (angle * PI) / 180.0;
     double x_dir = cos(angle);
     double y_dir = sin(angle);
 
-    double power = tank_get_power(tank);
+    double power = tank_get_power(t1);
     power = power + BASE_POWER;
     vector_t velo = vec_multiply(power, (vector_t) {x_dir, y_dir});
 
-    int type = tank_get_number(tank);
-    if (type == 1) {
-        body_set_velocity(bullet, velo);
-    }
-    else {
-        //If the tank is on the righthand side then the x-velo needs to be flipped
+    int type = tank_get_number(t1);
+    if (type == 2) {
         velo.x = velo.x * -1;
-        body_set_velocity(bullet, velo);
     }
-    SDL_Texture *bullet_text = sdl_create_sprite_texture("images/bullet.png");
-    add_texture(bullet, bullet_text, BULLET_SPRITE_SIZE);
-    scene_add_body(scene, bullet);
-    create_newtonian_gravity(scene, G, bullet, anchor);
-    create_oneway_destructive_collision(scene, left_wall, bullet);
-    create_oneway_destructive_collision(scene, right_wall, bullet);
-
-    create_bullet_rotate(scene, bullet);
-    create_drag(scene, wind, bullet);
-
-    body_t *other_tank;
-    if (type == 1) {
-        other_tank = tank2;
-    }
-    else {
-        other_tank = tank1;
-    }
-    create_damaging_collision(scene, other_tank, bullet);
-    create_physics_collision(scene, 0.01, tank_get_barrel(other_tank), bullet);
-    double current_fuel = tank_get_fuel(other_tank);
-    if (current_fuel + NEW_FUEL > 100) {
-        tank_set_fuel(other_tank, 100.0);
-    }
-    else {
-        tank_set_fuel(other_tank, current_fuel + NEW_FUEL);
-    }
-    tank_set_turn(other_tank, true);
-    update_fuel_bar(other_tank);
-    create_bullet_destroy(scene, terrain, bullet);
-    tank_set_turn(tank, false);
+    create_cluster_bomb(scene, t2, t1, tank_center, velo, wind, dmg);
 }
+
+
 
 bool off_screen_right(body_t *tank) {
     list_t *shape = body_get_shape(tank);
@@ -265,7 +237,7 @@ void shooter_key_handler(char key, key_event_type_t type, double held_time, scen
                     break;
 
                 case SPACE_BAR:
-                    shoot_bullet(scene, tank, WIND);
+                    shoot_bullet(scene, WIND, DAMAGE);
             }
         }
 
@@ -331,6 +303,7 @@ scene_t *init_new_game(rgb_color_t sky_color) {
 
     terrain = generate_terrain(MAX.x, BASE_HEIGHT, TERRAIN_SCALE, NUM_TERRAIN_LEVELS, TERRAIN_DAMPING, TERRAIN_MASS, TERRAIN_AMPLITUDE);
     scene_add_body(scene, terrain);
+    scene_terrain(scene, terrain);
 
     SDL_Texture *texture1 = sdl_create_sprite_texture("images/tank_big_blue.png"); //need to import image
     SDL_Texture *texture2 = sdl_create_sprite_texture("images/tank_big_red.png"); //need to import image
@@ -347,7 +320,7 @@ scene_t *init_new_game(rgb_color_t sky_color) {
     scene_add_body(scene, tank_get_barrel(tank1));
     tank2 = tank_init(BIG_MASS, (rgb_color_t){0.0, 0.5, 0.5}, TANK2_START_POS, TANK_SIZE, 2, barrel_dim);
     scene_add_body(scene,tank2);
-    scene_add_body(scene, tank_get_barrel(tank2));
+    scene_tanks(scene, tank1, tank2);
 
     // Add textures to tanks and barrels
     add_texture(tank1, texture1, TANK_SPRITE_SIZE);
@@ -367,6 +340,7 @@ scene_t *init_new_game(rgb_color_t sky_color) {
 
     anchor = make_ground();
     scene_add_body(scene, anchor);
+    scene_anchor(scene, anchor);
 
     health_bar_t *health_bar1 = tank_get_health_bar(tank1);
     scene_add_body(scene, health_bar1->outer);
@@ -399,7 +373,7 @@ scene_t *init_new_game(rgb_color_t sky_color) {
     scene_add_body(scene, fuel_bar2->outer);
     scene_add_body(scene, fuel_bar2->inner);
     scene_add_body(scene, fuel_bar2->fuel_level);
-    add_text_bars(scene, vec_add((vector_t) {0.0, BAR_HEIGHT}, body_get_centroid(fuel_bar1->outer)), (vector_t){ BAR_WIDTH, BAR_HEIGHT }, GREEEN, "PLAYER 1 FUEL");
+    add_text_bars(scene, vec_add((vector_t) {0.0, BAR_HEIGHT}, body_get_centroid(fuel_bar1->outer)), (vector_t){ BAR_WIDTH*5, BAR_HEIGHT*5 }, GREEEN, "PLAYER 1 FUEL");
     add_text_bars(scene, vec_add((vector_t) {0.0, BAR_HEIGHT}, body_get_centroid(fuel_bar2->outer)), (vector_t){ BAR_WIDTH, BAR_HEIGHT }, GREEEN, "PLAYER 2 FUEL");
 
     add_text_bars(scene, (vector_t) {MAX.x / 2, 7 * MAX.y / 8}, (vector_t) {150.0, 4.0}, sky_color,
