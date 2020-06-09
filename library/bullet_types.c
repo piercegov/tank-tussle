@@ -40,7 +40,6 @@ void calc_cluster_bomb_collision(body_t *body1, body_t *bullet, vector_t axis, c
     scene_t *scene = aux->scene;
     double rads_per = 2 * PIIIII / num_clusters;
     for (size_t i = 0; i < num_clusters; i++) {
-        printf("%f\n", cos(i * rads_per));
         vector_t velo = vec_multiply(CLUSTER_VELO, (vector_t) {cos(i * rads_per), sin(i*rads_per)});
         vector_t pos = vec_multiply(CLUSTER_OFF, (vector_t) {cos(i * rads_per), sin(i*rads_per)});
         create_kinetic_bullet(scene, aux->target, aux->shooter, vec_add(pos, body_get_centroid(bullet)), velo, aux->wind, aux->dmg);
@@ -121,7 +120,7 @@ void create_kinetic_bullet(scene_t *scene, body_t *t1, body_t *t2, vector_t pos,
 void create_cluster_bomb(scene_t *scene, body_t *t1, body_t *t2, vector_t pos, vector_t velo,
         double wind, double dmg) {
     body_t *bullet = init_gen_bullet(scene, t1, t2, pos, velo, wind, dmg);
-    create_cluster_bomb_collision(scene, t1, t2, bullet, 70, 10.0, 0.0);
+    create_cluster_bomb_collision(scene, t1, t2, bullet, 20, 10.0, 0.0);
     create_newtonian_gravity(scene, G, bullet, scene_get_anchor(scene));
 
 }
