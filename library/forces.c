@@ -478,7 +478,7 @@ void create_terrain_collision(scene_t *scene, body_t *terrain, body_t *bullet, c
         (force_creator_t) (calc_collision_with_terrain),
         aux1,
         bodies,
-        (free_func_t) (freer)
+        (free_func_t) (collision_terrain_aux_free)
     );
 }
 
