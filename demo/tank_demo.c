@@ -194,6 +194,7 @@ void shooter_key_handler(char key, key_event_type_t type, double held_time, scen
                     else {
                         render_tank(tank, 0.0, 0.0, (vector_t) {-TANK_VELO.x, TANK_VELO.y}, held_time);
                     }
+                    add_sound_effect("sounds/sound115.wav");
                     break;
 
                 case RIGHT_ARROW:
@@ -203,6 +204,7 @@ void shooter_key_handler(char key, key_event_type_t type, double held_time, scen
                     else {
                         render_tank(tank, 0.0, 0.0, (vector_t) {TANK_VELO.x, TANK_VELO.y}, held_time);
                     }
+                    add_sound_effect("sounds/sound115.wav");
                     break;
 
                 case UP_ARROW:
@@ -229,6 +231,7 @@ void shooter_key_handler(char key, key_event_type_t type, double held_time, scen
                     }
                     else {
                         render_tank(tank, 0.0, 1.0, (vector_t){ 0 , 0 }, held_time);
+                        add_sound_effect("sounds/sound62.wav");
                     }
                     break;
 
@@ -443,12 +446,14 @@ int main() {
             if (tank2_wins < GAME_LEVELS) {
                 add_text_bars(scene, (vector_t) {MAX.x / 2, 5 * MAX.y / 8}, (vector_t) { 50.0, 4.0 }, sky_color, "PLAYER 2 WINS THE ROUND!!!");
                 sdl_render_scene(scene);
+                add_sound_effect("sounds/im-in-touble.wav");
                 sleep(5);
                 scene_free(scene);
                 sky_color = make_sky_color();
                 scene = init_new_game(sky_color);
             }
             else {
+                add_sound_effect("sounds/am-i-totally-screwed-or.wav");
                 add_text_bars(scene, (vector_t) {MAX.x / 2, 5 * MAX.y / 8}, (vector_t) { 100.0, 4.0 }, sky_color, "Game over, Player 2 has won!!!");
                 sdl_render_scene(scene);
                 sleep(5);
@@ -461,12 +466,14 @@ int main() {
             if (tank1_wins < GAME_LEVELS) {
                 add_text_bars(scene, (vector_t) {MAX.x / 2, 5 * MAX.y / 8}, (vector_t) { 50.0, 4.0 }, sky_color, "PLAYER 1 WINS THE ROUND!!!");
                 sdl_render_scene(scene);
+                add_sound_effect("sounds/im-in-touble.wav");
                 sleep(5);
                 scene_free(scene);
                 sky_color = make_sky_color();
                 scene = init_new_game(sky_color);
             }
             else {
+                add_sound_effect("sounds/am-i-totally-screwed-or.wav");
                 add_text_bars(scene, (vector_t) {MAX.x / 2, 5 * MAX.y / 8}, (vector_t) { 100.0, 4.0 }, sky_color, "Game over, Player 1 has won!!!");
                 sdl_render_scene(scene);
                 sleep(5);
