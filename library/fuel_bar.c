@@ -40,6 +40,7 @@ void update_fuel_bar(body_t *t1) {
     for (size_t i = 0; i < list_size(new_points); i++) {
         list_add(old_points, list_get(new_points, i));
     }
+    free(list_get_data(new_points));
     free(new_points);
 
 }

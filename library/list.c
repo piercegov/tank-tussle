@@ -35,6 +35,10 @@ void list_free(list_t *list) {
     free(list);
 }
 
+void **list_get_data(list_t *list) {
+    return list->data;
+}
+
 size_t list_size(list_t *list) {
     return list->size;
 }

@@ -59,9 +59,16 @@ void create_cluster_bomb_collision(scene_t *scene, body_t *t1, body_t *t2, body_
     aux->wind = wind;
     aux->shooter = t2;
     aux->target = t1;
+    cluster_aux_t *aux1 = malloc(sizeof(cluster_aux_t));
+    aux1->scene = scene;
+    aux1->num_clusters = num_clusters;
+    aux1->dmg = dmg;
+    aux1->wind = wind;
+    aux1->shooter = t2;
+    aux1->target = t1;
     create_terrain_collision(scene, scene_get_terrain(scene), bullet, (collision_handler_t) calc_cluster_bomb_collision, aux,
         (free_func_t) free);
-    create_collision(scene, t1, bullet, (collision_handler_t) calc_cluster_bomb_collision, aux,
+    create_collision(scene, t1, bullet, (collision_handler_t) calc_cluster_bomb_collision, aux1,
         (free_func_t) free);
 }
 

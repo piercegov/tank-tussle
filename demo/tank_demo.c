@@ -81,21 +81,9 @@ body_t *tank_turn(scene_t *scene, body_t *tank1, body_t *tank2) {
 void add_sound_effect(char effect[]) {
     Mix_Chunk *chunk = Mix_LoadWAV(effect);
     Mix_PlayChannel(-1, chunk, 0);
-<<<<<<< HEAD
     list_add(sound_effects, chunk);
 }
 
-=======
-<<<<<<< HEAD
-    list_add(sound_effects, chunk);
-}
-
-=======
-}
-
-
->>>>>>> d408fd0eb79d18185515a7179b5614dcb851efa1
->>>>>>> 03c0b656a955da71b2d25b489b87b2e9fff3c828
 void add_walls(scene_t *scene) {
     list_t *rect = create_rectangle((vector_t){VEC_ZERO.x - WALL_WIDTH / 2, MAX.y / 2}, WALL_WIDTH, MAX.x);
     left_wall = body_init(rect, INFINITY, BLACK);
