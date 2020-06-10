@@ -60,7 +60,7 @@ const rgb_color_t LIGHT_BLUE = {173.0 / 255.0, 216.0 / 255.0, 230.0 / 255.0};
 const rgb_color_t LIGHT_GRAY = {211.0 / 255.0, 211.0 / 255.0, 211.0 / 255.0};
 const rgb_color_t TERRAIN_GREEN = {0.0, 153.0/255.0, 51.0/255.0};
 
-Mix_Chunk *boom = NULL;
+list_t *sound_effects;
 
 body_t *tank1;
 body_t *tank2;
