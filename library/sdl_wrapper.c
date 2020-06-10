@@ -283,7 +283,6 @@ SDL_Texture *sdl_create_text(char string[], char font[], int font_size) {
     SDL_Color black = {0, 0, 0};
     SDL_Surface *surface_message = TTF_RenderText_Solid(font_type, string, black);
     SDL_Texture *message = SDL_CreateTextureFromSurface(renderer, surface_message);
-    TTF_CloseFont(font_type);
     SDL_FreeSurface(surface_message);
 
     return message;
