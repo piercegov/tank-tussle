@@ -80,11 +80,7 @@ body_t *tank_turn(scene_t *scene, body_t *tank1, body_t *tank2) {
 void add_sound_effect(char effect[]) {
     Mix_Chunk *chunk = Mix_LoadWAV(effect);
     Mix_PlayChannel(-1, chunk, 0);
-<<<<<<< HEAD
-    Mix_FreeChunk(chunk);
-=======
     list_add(sound_effects, chunk);
->>>>>>> 5889bb3a3f5c709750139b6634251bee6ca41edf
 }
 
 void add_walls(scene_t *scene) {
