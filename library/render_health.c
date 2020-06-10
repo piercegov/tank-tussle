@@ -39,7 +39,7 @@ void update_health_bar(body_t *t1) {
     list_t *new_points = create_rectangle(vec_add(center, pool_offset), new_width, BAR_HEIGHT - OUTLINE_WIDTH);
 
     for (size_t i = 0; i < list_size(old_points); i++) {
-        list_remove(old_points, i);
+        free(list_remove(old_points, i));
     }
 
     for (size_t i = 0; i < list_size(new_points); i++) {

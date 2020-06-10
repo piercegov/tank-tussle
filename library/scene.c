@@ -61,7 +61,6 @@ body_t *scene_get_tank2(scene_t *scene) {
     return scene->tank2;
 }
 
-
 scene_t *scene_init() {
     scene_t *scene = malloc(sizeof(scene_t));
     list_t *bodies = list_init(INIT_BODIES, (free_func_t) body_free);
@@ -94,9 +93,6 @@ void scene_add_body(scene_t *scene, body_t *body){
 }
 
 void scene_remove_body(scene_t *scene, size_t index){
-    // DEPRECATED
-    // body_t *removed = list_remove(scene->bodies, index);
-    // body_free(removed);
     body_remove(scene_get_body(scene, index));
 }
 
