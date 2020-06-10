@@ -77,11 +77,11 @@ body_t *tank_turn(scene_t *scene, body_t *tank1, body_t *tank2) {
     return tank2;
 }
 
-void add_sound_effect(Mix_Chunk *chunk, char effect[]) {
-    chunk = Mix_LoadWAV(effect);
+void add_sound_effect(char effect[]) {
+    Mix_Chunk *chunk = Mix_LoadWAV(effect);
     Mix_PlayChannel(-1, chunk, 0);
+    list_add(sound_effects, chunk);
 }
-
 
 void add_walls(scene_t *scene) {
     list_t *rect = create_rectangle((vector_t){VEC_ZERO.x - WALL_WIDTH / 2, MAX.y / 2}, WALL_WIDTH, MAX.x);
@@ -257,7 +257,7 @@ void shooter_key_handler(char key, key_event_type_t type, double held_time, scen
 
                 case SPACE_BAR:
                     shoot_bullet(scene, WIND);
-                    add_sound_effect(boom, "sounds/boomboomgoboom.wav");
+                    add_sound_effect("sounds/boomboomgoboom.wav");
                     render_tank(tank, 0.0, 0.0, (vector_t){ 0 , 0 }, held_time);
             }
         }
@@ -424,6 +424,7 @@ int main() {
     sdl_init(MIN, MAX);
     rgb_color_t sky_color = make_sky_color();
 
+    sound_effects = list_init(10, (free_func_t)Mix_FreeChunk);
     scene_t *scene = init_new_game(sky_color);
 
     sdl_on_key((key_handler_t) shooter_key_handler);
@@ -472,7 +473,7 @@ int main() {
             }
         }
     }
-    Mix_FreeChunk(boom);
+    list_free(sound_effects);
     scene_free(scene);
     return 0;
 }

@@ -478,7 +478,7 @@ void create_terrain_collision(scene_t *scene, body_t *terrain, body_t *bullet, c
         (force_creator_t) (calc_collision_with_terrain),
         aux1,
         bodies,
-        (free_func_t) (freer)
+        (free_func_t) (collision_terrain_aux_free)
     );
 }
 
@@ -534,8 +534,6 @@ void calc_barrel_rotate(barrel_rotate_aux_t *aux) {
 
     body_set_rotation_relative(barrel, angle, body_get_centroid(tank));
 
-    // list_t *points = body_get_points(barrel);  // THIS IS MORE ACCURATE, ROTATES AROUND CENTER OF TANK
-    // polygon_rotate(points, angle, body_get_centroid(tank));
 }
 
 void create_barrel_rotate(scene_t *scene, body_t *tank, vector_t offset) {
