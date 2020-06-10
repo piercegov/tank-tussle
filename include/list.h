@@ -35,8 +35,6 @@ list_t *list_init(size_t initial_size, free_func_t freer);
  */
 void list_free(list_t *list);
 
-void **list_get_data(list_t *list);
-
 /**
  * Gets the size of a list (the number of occupied elements).
  * Note that this is NOT the list's capacity.
