@@ -390,7 +390,7 @@ scene_t *init_new_game(rgb_color_t sky_color) {
     add_text_bars(scene, vec_add((vector_t) {0.0, BAR_HEIGHT}, body_get_centroid(fuel_bar2->outer)), (vector_t){ BAR_WIDTH, BAR_HEIGHT }, TERRAIN_GREEN, "PLAYER 2 FUEL");
 
     add_text_bars(scene, (vector_t) {MAX.x / 2, 7 * MAX.y / 8}, (vector_t) {150.0, 4.0}, sky_color,
-        "Move: Left/right || Power: w/s || Angle: Up/down || Shoot: Space bar || Bullet Type: 1 (Normal), 2 (Scatter), 3 (Radius)");
+        "Move: Left/right || Power: w/s || Angle: Up/down || Shoot: Space bar || Bullet Type: 1 (Normal), 2 (Scatter), 3 (Cluster)");
 
     return scene;
 }
