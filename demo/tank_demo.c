@@ -83,9 +83,6 @@ void add_sound_effect(Mix_Chunk *chunk, char effect[]) {
     list_add(sound_effects, chunk);
 }
 
-// void free_sound_effect(Mix_Chunk *effect) {
-//     Mix_FreeChunk(effect);
-// }
 
 void add_walls(scene_t *scene) {
     list_t *rect = create_rectangle((vector_t){VEC_ZERO.x - WALL_WIDTH / 2, MAX.y / 2}, WALL_WIDTH, MAX.x);
